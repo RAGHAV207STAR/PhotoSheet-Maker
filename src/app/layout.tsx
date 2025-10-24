@@ -8,6 +8,7 @@ import { EditorProvider } from '@/context/editor-context';
 import { FirebaseClientProvider } from '@/firebase';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app/app-sidebar';
+import GoogleAnalytics from '@/components/app/google-analytics';
 
 
 const APP_NAME = "Photosheet Maker";
@@ -68,6 +69,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png"></link>
       </head>
       <body className="font-body antialiased">
+      <GoogleAnalytics />
       <FirebaseClientProvider>
           <EditorProvider>
             <SidebarProvider defaultOpen={false}>
