@@ -1,0 +1,71 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a user's profile information.",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the user's profile picture."
+        }
+      },
+      "required": ["email"]
+    },
+    "Photosheet": {
+      "title": "Photosheet",
+      "type": "object",
+      "description": "Represents a generated photosheet record.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created the photosheet."
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The data URI of the uploaded image."
+        },
+        "copies": {
+          "type": "number",
+          "description": "Number of photos on the sheet."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the photosheet was created."
+        }
+      },
+      "required": ["userId", "imageUrl", "copies", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "google.com"]
+  },
+  "firestore": {
+      "rules": "rules-simple.tfl",
+      "/users/{userId}": {
+          "schema": {
+              "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores public profile information for a user."
+      },
+      "/users/{userId}/photosheets/{photosheetId}": {
+        "schema": {
+          "$ref": "#/backend/entities/Photosheet"
+        },
+        "description": "Stores a user's history of generated photosheets."
+      }
+  }
+}
