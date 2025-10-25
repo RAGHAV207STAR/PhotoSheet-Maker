@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
+  keywords: ["photosheet", "passport photo", "visa photo", "id photo", "photo printing", "photo editor", "passport size photo maker"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -49,6 +50,9 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
   },
+  other: {
+    "google-site-verification": "k4kWMniewMZF4Th5E85MuPIN-py8BXX_uWIuLPbu2Io",
+  }
 };
 
 export const viewport: Viewport = {
