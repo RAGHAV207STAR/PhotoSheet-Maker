@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // Define the event type, as it's not a standard DOM event
 interface BeforeInstallPromptEvent extends Event {
@@ -17,23 +17,32 @@ export const usePWAInstall = () => {
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [canInstall, setCanInstall] = useState(false);
 
+  const handleBeforeInstallPrompt = useCallback((event: Event) => {
+    // Prevent the mini-infobar from appearing on mobile
+    event.preventDefault();
+    // Stash the event so it can be triggered later.
+    setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    setCanInstall(true);
+  }, []);
+
+  const handleAppInstalled = useCallback(() => {
+    // Once installed, the prompt is no longer needed
+    setInstallPromptEvent(null);
+    setCanInstall(false);
+  }, []);
+
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleBeforeInstallPrompt = (event: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      event.preventDefault();
-      // Stash the event so it can be triggered later.
-      setInstallPromptEvent(event as BeforeInstallPromptEvent);
-      setCanInstall(true);
-    };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [handleBeforeInstallPrompt, handleAppInstalled]);
 
   const install = async () => {
     if (!installPromptEvent) {
