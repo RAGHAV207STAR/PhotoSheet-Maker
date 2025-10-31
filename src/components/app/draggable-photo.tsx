@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useDrag } from 'react-dnd';
 import { type Photo } from '@/context/editor-context';
 import { cn } from '@/lib/utils';
-import { ConnectDragSource } from 'react-dnd';
 
 interface DraggablePhotoProps {
   photo: Photo;
@@ -22,7 +21,7 @@ export default function DraggablePhoto({ photo }: DraggablePhotoProps) {
 
   return (
     <div
-      ref={(node) => drag(node)}
+      ref={(node) => { if (node) drag(node); }}
       className={cn(
         "relative w-full h-full cursor-grab",
         isDragging ? "opacity-50" : "opacity-100"
