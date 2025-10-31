@@ -136,6 +136,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} light`} suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body className={`font-body antialiased`}>
       <script

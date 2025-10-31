@@ -101,8 +101,8 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                 const photoWidthOnSheet = (photo.width / 100) * sheetWidthMm;
                 const photoHeightOnSheet = (photo.height / 100) * sheetHeightMm;
                 
-                // Draw image first
-                pdf.addImage(photo.imageSrc, 'JPEG', xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, undefined, 'NONE');
+                // Draw image first. Using PNG ensures lossless compression.
+                pdf.addImage(photo.imageSrc, 'PNG', xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, undefined, 'NONE');
 
                 // Draw border on top of the image
                 if (borderWidth > 0) {

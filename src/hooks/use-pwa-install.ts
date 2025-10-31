@@ -13,6 +13,13 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+// Allow storing the event on the window object for persistence across renders
+declare global {
+  interface Window {
+    deferredPrompt?: BeforeInstallPromptEvent;
+  }
+}
+
 export const usePWAInstall = () => {
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [canInstall, setCanInstall] = useState(false);
@@ -21,12 +28,15 @@ export const usePWAInstall = () => {
     // Prevent the mini-infobar from appearing on mobile
     event.preventDefault();
     // Stash the event so it can be triggered later.
-    setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    const promptEvent = event as BeforeInstallPromptEvent;
+    window.deferredPrompt = promptEvent;
+    setInstallPromptEvent(promptEvent);
     setCanInstall(true);
   }, []);
 
   const handleAppInstalled = useCallback(() => {
     // Once installed, the prompt is no longer needed
+    window.deferredPrompt = undefined;
     setInstallPromptEvent(null);
     setCanInstall(false);
   }, []);
@@ -34,6 +44,12 @@ export const usePWAInstall = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Check if the event was already fired and stashed
+    if (window.deferredPrompt) {
+        setInstallPromptEvent(window.deferredPrompt);
+        setCanInstall(true);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -53,6 +69,7 @@ export const usePWAInstall = () => {
     const { outcome } = await installPromptEvent.userChoice;
     
     // The prompt can only be used once.
+    window.deferredPrompt = undefined;
     setInstallPromptEvent(null);
     setCanInstall(false);
 
