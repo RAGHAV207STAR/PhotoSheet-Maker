@@ -7,15 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Edit, LogOut, User as UserIcon, LogIn, Loader2 } from "lucide-react";
+import { ChevronRight, Edit, LogOut, User as UserIcon, LogIn, Loader2, History } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser, useAuth } from "@/firebase";
 import { signOut, updateProfile } from "firebase/auth";
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GoogleSpinner } from "@/components/ui/google-spinner";
+
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState(user?.displayName || '');
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       toast({
@@ -67,36 +69,10 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSettingClick = (setting: string) => {
-    toast({
-        title: `${setting} clicked`,
-        description: `This functionality is coming soon!`,
-    });
-  }
-
   if (isUserLoading) {
     return (
-      <div className="flex flex-col flex-1 bg-background">
-        <main className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-          <Card className="w-full max-w-md">
-            <CardHeader className="items-center text-center">
-              <Skeleton className="w-24 h-24 rounded-full mb-2" />
-              <Skeleton className="h-8 w-40" />
-              <Skeleton className="h-5 w-52" />
-            </CardHeader>
-            <CardContent>
-              <Separator />
-              <div className="py-4 space-y-2">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-12 w-full" />
-              </div>
-              <Separator />
-              <div className="pt-4">
-                <Skeleton className="h-10 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="flex flex-col flex-1 bg-background items-center justify-center">
+        <GoogleSpinner />
       </div>
     );
   }
@@ -131,7 +107,7 @@ export default function ProfilePage() {
             <Card>
                 <CardHeader className="items-center text-center">
                     <Avatar className="w-24 h-24 mb-2 border-4 border-primary/20">
-                        <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/200`} alt={user.displayName || "User"} />
+                        <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
                         <AvatarFallback>
                             <UserIcon className="h-10 w-10"/>
                         </AvatarFallback>
@@ -182,7 +158,13 @@ export default function ProfilePage() {
                             </form>
                         </DialogContent>
                         </Dialog>
-
+                        <button className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-secondary transition-colors" onClick={() => router.push('/history')}>
+                            <span className="flex items-center gap-4">
+                                <History className="w-5 h-5 text-muted-foreground" />
+                                <span>View History</span>
+                            </span>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        </button>
                     </div>
                     <Separator />
                     <div className="pt-4">

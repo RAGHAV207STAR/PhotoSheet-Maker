@@ -1,12 +1,11 @@
+
 'use client';
 
 import { useFirebase } from '@/firebase/provider';
-
-// This is a new, simplified hook for user management.
-// It relies on the central state management in FirebaseProvider.
+import { type User } from 'firebase/auth';
 
 export interface UserHookResult {
-  user: any | null; // Consider using the actual Firebase User type
+  user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
 }

@@ -10,64 +10,91 @@ export interface Photo {
   y: number;
   width: number;
   height: number;
+  imageSrc: string; 
 }
 
+type Unit = 'cm' | 'in';
+
 interface EditorContextType {
-  image: string | null;
-  setImage: Dispatch<SetStateAction<string | null>>;
+  images: string[];
+  setImages: Dispatch<SetStateAction<string[]>>;
   copies: number;
   setCopies: Dispatch<SetStateAction<number>>;
   photos: Photo[];
   setPhotos: Dispatch<SetStateAction<Photo[]>>;
-  movePhoto: (draggedId: number, targetId: number) => void;
+  swapPhoto: (sourceId: number, targetId: number) => void;
   borderWidth: number;
   setBorderWidth: Dispatch<SetStateAction<number>>;
   photoSpacing: number;
   setPhotoSpacing: Dispatch<SetStateAction<number>>;
+  photoWidthCm: number;
+  setPhotoWidthCm: Dispatch<SetStateAction<number>>;
+  photoHeightCm: number;
+  setPhotoHeightCm: Dispatch<SetStateAction<number>>;
+  unit: Unit;
+  setUnit: Dispatch<SetStateAction<Unit>>;
+  resetEditor: () => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
 export function EditorProvider({ children }: { children: React.ReactNode }) {
-  const [image, setImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [copies, setCopies] = useState<number>(1);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [borderWidth, setBorderWidth] = useState<number>(1);
   const [photoSpacing, setPhotoSpacing] = useState<number>(0.3);
-  
-  const movePhoto = useCallback((draggedId: number, targetId: number) => {
-    setPhotos((prevPhotos) => {
-      const newPhotos = [...prevPhotos];
-      const draggedPhoto = newPhotos.find(p => p.id === draggedId);
-      const targetPhoto = newPhotos.find(p => p.id === targetId);
+  const [photoWidthCm, setPhotoWidthCm] = useState<number>(3.5);
+  const [photoHeightCm, setPhotoHeightCm] = useState<number>(4.5);
+  const [unit, setUnit] = useState<Unit>('cm');
 
-      if (!draggedPhoto || !targetPhoto) return newPhotos;
+  const swapPhoto = useCallback((sourceId: number, targetId: number) => {
+    setPhotos(currentPhotos => {
+      const sourceIndex = currentPhotos.findIndex(p => p.id === sourceId);
+      const targetIndex = currentPhotos.findIndex(p => p.id === targetId);
 
-      // Swap positions
-      const tempX = draggedPhoto.x;
-      const tempY = draggedPhoto.y;
-      draggedPhoto.x = targetPhoto.x;
-      draggedPhoto.y = targetPhoto.y;
-      targetPhoto.x = tempX;
-      targetPhoto.y = tempY;
+      if (sourceIndex === -1 || targetIndex === -1) {
+        return currentPhotos;
+      }
+      
+      const newPhotos = [...currentPhotos];
+      const sourceImage = newPhotos[sourceIndex].imageSrc;
+      newPhotos[sourceIndex] = { ...newPhotos[sourceIndex], imageSrc: newPhotos[targetIndex].imageSrc };
+      newPhotos[targetIndex] = { ...newPhotos[targetIndex], imageSrc: sourceImage };
 
       return newPhotos;
     });
   }, []);
 
+  const resetEditor = useCallback(() => {
+    setBorderWidth(1);
+    setPhotoSpacing(0.3);
+    setPhotoWidthCm(3.5);
+    setPhotoHeightCm(4.5);
+    setUnit('cm');
+    // We don't reset images or copies here, only layout adjustments
+  }, []);
+
 
   const value = {
-    image,
-    setImage,
+    images,
+    setImages,
     copies,
     setCopies,
     photos,
     setPhotos,
-    movePhoto,
+    swapPhoto,
     borderWidth,
     setBorderWidth,
     photoSpacing,
     setPhotoSpacing,
+    photoWidthCm,
+    setPhotoWidthCm,
+    photoHeightCm,
+    setPhotoHeightCm,
+    unit,
+    setUnit,
+    resetEditor,
   };
 
   return (

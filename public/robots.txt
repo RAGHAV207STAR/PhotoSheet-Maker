@@ -1,7 +1,10 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
-#
-# Allow all crawlers to access all content
+# Allow all user agents to crawl the entire site
 User-agent: *
-Disallow:
+Allow: /
 
-Sitemap: https://photosheet-maker.com/sitemap.xml
+# Disallow crawling of specific paths if needed in the future
+# Disallow: /profile/
+# Disallow: /editor/
+
+# Sitemap location
+Sitemap: https://photosheet-maker.vercel.app/sitemap.xml

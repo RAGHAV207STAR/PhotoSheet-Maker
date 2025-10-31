@@ -4,31 +4,18 @@
 import * as React from 'react';
 import { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeApp, getApp, getApps, type FirebaseOptions } from 'firebase/app';
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-interface FirebaseClientProviderProps {
-  children: ReactNode;
-}
-
-// This function now lives inside the client-only provider
 function initializeFirebaseOnClient() {
-    // If the config is incomplete, we can't initialize Firebase.
     if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
         return { app: null, auth: null, firestore: null, error: new Error("Firebase config is missing or incomplete.") };
     }
 
-    if (getApps().length > 0) {
-        const app = getApp();
-        const auth = getAuth(app);
-        const firestore = getFirestore(app);
-        return { app, auth, firestore, error: null };
-    }
-    
     try {
-        const app = initializeApp(firebaseConfig);
+        const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const firestore = getFirestore(app);
         return { app, auth, firestore, error: null };
@@ -39,10 +26,10 @@ function initializeFirebaseOnClient() {
 }
 
 
-export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+export function FirebaseClientProvider({ children }: { children: ReactNode }) {
   const firebaseServices = useMemo(() => {
     return initializeFirebaseOnClient();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []); 
 
   if (firebaseServices.error || !firebaseServices.app) {
       return (

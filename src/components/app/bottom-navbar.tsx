@@ -15,17 +15,14 @@ export default function BottomNavbar() {
     setIsClient(true);
   }, []);
 
-
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/history', label: 'History', icon: History },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
-  if (!isClient) {
-    return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t shadow-t-lg z-50 no-print h-16" />
-    );
+  if (!isClient || pathname === '/login') {
+    return null;
   }
 
   return (

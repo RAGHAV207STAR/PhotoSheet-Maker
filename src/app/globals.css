@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,6 +30,8 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --sidebar-width: 14rem;
+    --sidebar-width-icon: 3rem;
   }
   .dark {
     --background: 222.2 47.4% 11.2%;
@@ -70,6 +73,46 @@
   }
   .font-headline {
       font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .google-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+    animation:-global-rotation 1s linear infinite;
+    @apply border-2 border-slate-300;
+  }
+  .google-spinner::after {
+    content: '';  
+    box-sizing: border-box;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    border-radius: 50%;
+    @apply border-2;
+    border-color: #4285F4 transparent;
+    animation:-color-rotation 2s ease-in-out infinite;
+  }
+
+  @keyframes -global-rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes -color-rotation {
+    0% { border-color: #4285F4 transparent; }
+    25% { border-color: #DB4437 transparent; }
+    50% { border-color: #F4B400 transparent; }
+    75% { border-color: #0F9D58 transparent; }
+    100% { border-color: #4285F4 transparent; }
   }
 }
 

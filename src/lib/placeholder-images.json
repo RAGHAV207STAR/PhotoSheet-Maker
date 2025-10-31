@@ -3,32 +3,20 @@
     {
       "id": "home-hero-1",
       "description": "A vintage camera lying on a wooden table, representing photography.",
-      "imageUrl": "https://picsum.photos/seed/camera/1800/1200",
+      "imageUrl": "https://images.unsplash.com/photo-1579535984712-92fffbbaa266?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW1lcmElMjBwaG90b2dyYXBoeXxlbnwwfHx8fDE3NjE1MzY3MTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "camera photography"
     },
     {
       "id": "home-hero-2",
       "description": "A person developing film in a darkroom.",
-      "imageUrl": "https://picsum.photos/seed/darkroom/1800/1200",
+      "imageUrl": "https://images.unsplash.com/photo-1698899114653-bcb1168c3123?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkYXJrcm9vbSUyMGZpbG18ZW58MHx8fHwxNzYxNTM2NzE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "darkroom film"
     },
     {
       "id": "home-hero-3",
       "description": "A stack of printed photographs.",
-      "imageUrl": "https://picsum.photos/seed/photographs/1800/1200",
+      "imageUrl": "https://images.unsplash.com/photo-1531845116688-48819b3b68d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcmludGVkJTIwcGhvdG9zfGVufDB8fHx8MTc2MTUzNjcxNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "printed photos"
-    },
-    {
-      "id": "home-hero-4",
-      "description": "A modern digital camera on a tripod.",
-      "imageUrl": "https://picsum.photos/seed/digitalcamera/1800/1200",
-      "imageHint": "digital camera"
-    },
-    {
-      "id": "home-hero-5",
-      "description": "Close-up of a camera lens.",
-      "imageUrl": "https://picsum.photos/seed/lens/1800/1200",
-      "imageHint": "camera lens"
     }
   ]
 }

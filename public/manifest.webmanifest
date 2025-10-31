@@ -1,7 +1,11 @@
 {
   "name": "Photosheet Maker",
   "short_name": "Photosheet",
-  "description": "Easily create, customize, and print photosheets for passports, visas, and other ID documents. Upload your photo, choose the number of copies, and get a print-ready PDF in seconds.",
+  "description": "Easily create, customize, and print professional passport-size photos, ID photos, and visa photos online.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ADD8E6",
+  "theme_color": "#ADD8E6",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -13,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#ADD8E6",
-  "background_color": "#F5F5F5",
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

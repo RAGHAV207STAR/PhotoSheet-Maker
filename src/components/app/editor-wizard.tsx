@@ -6,19 +6,19 @@ import { useSearchParams } from 'next/navigation';
 import { useEditor } from '@/context/editor-context';
 import UploadStep from './steps/upload-step';
 import PreviewStep from './steps/preview-step';
-import { Logo } from '../icons/logo';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { GoogleSpinner } from '../ui/google-spinner';
 
 interface Photosheet {
   id: string;
-  imageUrl: string;
+  imageUrl: string; 
   copies: number;
 }
 
 export default function EditorWizard() {
   const [step, setStep] = useState(1);
-  const { setCopies, setImage } = useEditor();
+  const { setCopies, setImages, resetEditor } = useEditor();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -35,29 +35,31 @@ export default function EditorWizard() {
 
   useEffect(() => {
     if (photosheet) {
-        setImage(photosheet.imageUrl);
+        setImages([photosheet.imageUrl]); // History loads a single image
         setCopies(photosheet.copies);
         setStep(2);
-    } else {
-        if (copiesParam) {
-            const parsedCopies = parseInt(copiesParam, 10);
-            if (!isNaN(parsedCopies)) {
-                setCopies(parsedCopies);
-            }
+    } else if (copiesParam) {
+        resetEditor(); 
+        const parsedCopies = parseInt(copiesParam, 10);
+        if (!isNaN(parsedCopies)) {
+            setCopies(parsedCopies);
         }
+        setStep(1);
     }
-  }, [copiesParam, setCopies, photosheet, setImage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copiesParam, photosheet, historyId]);
+
 
   const nextStep = () => setStep(s => s + 1);
-  const prevStep = () => setStep(s => s - 1);
-  
+  const prevStep = () => {
+    setStep(s => s - 1)
+  };
+
   if (isLoading && historyId) {
     return (
-       <div className="w-full h-screen flex items-center justify-center">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Logo className="h-6 w-6 animate-spin" />
-          <span className="font-semibold">Loading from History...</span>
-        </div>
+       <div className="w-full h-screen flex flex-col items-center justify-center gap-4">
+        <GoogleSpinner />
+        <p className="text-muted-foreground font-semibold">Loading from History...</p>
       </div>
     )
   }
