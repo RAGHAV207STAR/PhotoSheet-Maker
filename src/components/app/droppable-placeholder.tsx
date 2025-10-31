@@ -33,7 +33,7 @@ export default function DroppablePlaceholder({ photo, children }: DroppablePlace
 
   return (
     <div
-      ref={drop}
+      ref={(node) => { if (node) drop(node); }}
       className="absolute photo-item"
       style={{
         left: `${photo.x}%`,
