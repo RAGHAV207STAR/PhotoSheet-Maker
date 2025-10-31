@@ -1,16 +1,22 @@
 /** @type {import('next').NextConfig} */
+import withPWA from "@ducanh2912/next-pwa";
+
+const pwaConfig = withPWA({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
 const nextConfig = {
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'images.unsplash.com',
-            },
-        ],
-    },
-    devServer: {
-        allowedDevOrigins: ["https://6000-firebase-studio-1760423353153.cluster-73qgvk7hjjadkrjeyexca5ivva.cloudworkstations.dev"],
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 };
 
-export default nextConfig;
+export default pwaConfig(nextConfig);

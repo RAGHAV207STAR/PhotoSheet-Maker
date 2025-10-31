@@ -34,25 +34,37 @@ export default function EditorWizard() {
   const { data: photosheet, isLoading } = useDoc<Photosheet>(photosheetDocRef);
 
   useEffect(() => {
+    // This effect runs when the component mounts or when the dependencies change.
+    // It decides the initial state of the editor based on URL params.
+    
+    // If we're loading from a history entry:
     if (photosheet) {
-        setImages([photosheet.imageUrl]); // History loads a single image
+        setImages([photosheet.imageUrl]);
         setCopies(photosheet.copies);
-        setStep(2);
-    } else if (copiesParam) {
-        resetEditor(); 
+        setStep(2); // Go directly to preview
+        return; // Stop further processing
+    }
+
+    // If we are navigating from the homepage with a 'copies' param:
+    if (copiesParam) {
         const parsedCopies = parseInt(copiesParam, 10);
         if (!isNaN(parsedCopies)) {
+            resetEditor(); // Clear any previous state
             setCopies(parsedCopies);
+            setImages([]); // Ensure images are cleared for a new session
+            setStep(1); // Start at the upload step
         }
-        setStep(1);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [copiesParam, photosheet, historyId]);
+  }, [copiesParam, historyId, photosheet, resetEditor, setCopies, setImages]);
 
 
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => {
-    setStep(s => s - 1)
+    // When going back from preview to upload, we should clear the images
+    // but keep the number of copies selected from the homepage.
+    setImages([]);
+    setStep(1);
   };
 
   if (isLoading && historyId) {

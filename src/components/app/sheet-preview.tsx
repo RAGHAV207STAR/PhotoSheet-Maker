@@ -11,6 +11,7 @@ export default function SheetPreview() {
   const { 
     images, 
     photos, 
+    currentSheet,
     photoWidthCm, 
     photoHeightCm, 
     photoSpacing, 
@@ -68,46 +69,79 @@ export default function SheetPreview() {
   }, [photoWidthCm, photoHeightCm, photoSpacing]);
 
   const populatePhotos = useCallback(() => {
-    const totalPhotosToPlace = copies * images.length;
-    
-    const newPhotos = placeholders.map((p, index) => {
-      const imageIndex = index % images.length;
-      return {
-        ...p,
-        imageSrc: (images.length > 0 && index < totalPhotosToPlace) ? images[imageIndex] : ''
-      };
+    if (images.length === 0 || placeholders.length === 0) {
+      setPhotos([]);
+      return;
+    }
+  
+    // 1. Create a flat list of all image sources to be placed.
+    const allImageSources: string[] = [];
+    images.forEach(imageSrc => {
+      for (let i = 0; i < copies; i++) {
+        allImageSources.push(imageSrc);
+      }
     });
-
-    setPhotos(newPhotos.slice(0, placeholders.length));
-  }, [placeholders, copies, images, setPhotos]); 
+  
+    // 2. Chunk all sources into pages.
+    const photosBySheet: any[][] = [];
+    for (let i = 0; i < allImageSources.length; i += placeholders.length) {
+      const sheetSources = allImageSources.slice(i, i + placeholders.length);
+      photosBySheet.push(sheetSources);
+    }
+  
+    // 3. Create the final Photo[][] structure.
+    const finalSheets = photosBySheet.map(sheetSources => {
+      return placeholders.map((placeholder, index) => {
+        return {
+          ...placeholder,
+          imageSrc: sheetSources[index] || '', // Use source or empty string if not enough
+        };
+      });
+    });
+  
+    setPhotos(finalSheets);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images, copies, placeholders, setPhotos]);
   
   useEffect(() => {
     populatePhotos();
   }, [populatePhotos]);
 
 
+  const photosOnCurrentSheet = photos[currentSheet] || [];
+
   return (
-    <div className="printable-area-wrapper h-full">
-      <div
-        id="photosheet-container"
-        className="printable-area w-full h-full relative bg-white"
-      >
-          {photos.map((photo) => (
+    <>
+      {photos.map((sheet, sheetIndex) => (
+        <div
+          key={sheetIndex}
+          className="printable-area w-full h-full relative bg-white"
+          style={{ display: sheetIndex === currentSheet ? 'block' : 'none' }}
+        >
+          {sheet.map((photo) => (
             <DroppablePlaceholder key={photo.id} photo={photo}>
               {photo.imageSrc ? (
                 <DraggablePhoto photo={photo} />
               ) : null}
             </DroppablePlaceholder>
           ))}
-
-          {photos.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground p-4 no-print">
-              <ImageIcon className="h-12 w-12 mb-4" />
-              <h3 className="text-lg font-semibold">A4 Preview</h3>
-              <p className="text-sm max-w-xs mx-auto">Your photosheet layout will appear here. Adjust settings to generate a layout.</p>
-            </div>
+          {sheet.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground p-4 no-print">
+                <ImageIcon className="h-12 w-12 mb-4" />
+                <h3 className="text-lg font-semibold">A4 Preview</h3>
+                <p className="text-sm max-w-xs mx-auto">Your photosheet layout will appear here. Adjust settings to generate a layout.</p>
+              </div>
           )}
-      </div>
-    </div>
+        </div>
+      ))}
+       {photos.length === 0 && (
+          <div className="w-full h-full relative bg-white flex flex-col items-center justify-center text-center text-muted-foreground p-4 no-print">
+            <ImageIcon className="h-12 w-12 mb-4" />
+            <h3 className="text-lg font-semibold">A4 Preview</h3>
+            <p className="text-sm max-w-xs mx-auto">Your photosheet layout will appear here. Adjust settings to generate a layout.</p>
+          </div>
+        )}
+    </>
   );
 }
+

@@ -118,8 +118,8 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
             <CardContent 
               onClick={images.length === 0 ? triggerUpload : undefined} 
               className={cn(
-                "relative w-full aspect-video max-w-2xl mx-auto flex items-center justify-center overflow-hidden p-0",
-                images.length === 0 && "cursor-pointer group"
+                "relative w-full max-w-2xl mx-auto flex items-center justify-center overflow-hidden p-0",
+                images.length === 0 && "cursor-pointer group aspect-video"
               )}
             >
               <AnimatePresence mode="wait">

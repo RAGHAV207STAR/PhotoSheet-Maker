@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { useDrag } from 'react-dnd';
-import { type Photo } from '@/context/editor-context';
+import { type Photo, useEditor } from '@/context/editor-context';
 import { cn } from '@/lib/utils';
 
 interface DraggablePhotoProps {
@@ -11,6 +11,7 @@ interface DraggablePhotoProps {
 }
 
 export default function DraggablePhoto({ photo }: DraggablePhotoProps) {
+  const { borderWidth } = useEditor();
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'PHOTO',
     item: { id: photo.id },
@@ -23,9 +24,12 @@ export default function DraggablePhoto({ photo }: DraggablePhotoProps) {
     <div
       ref={(node) => { if (node) drag(node); }}
       className={cn(
-        "relative w-full h-full cursor-grab",
+        "relative w-full h-full cursor-grab border-black",
         isDragging ? "opacity-50" : "opacity-100"
       )}
+      style={{
+        borderWidth: `${borderWidth}px`
+      }}
     >
       <Image
         src={photo.imageSrc}

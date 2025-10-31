@@ -20,8 +20,10 @@ interface EditorContextType {
   setImages: Dispatch<SetStateAction<string[]>>;
   copies: number;
   setCopies: Dispatch<SetStateAction<number>>;
-  photos: Photo[];
-  setPhotos: Dispatch<SetStateAction<Photo[]>>;
+  photos: Photo[][]; // Array of sheets, each sheet is an array of photos
+  setPhotos: Dispatch<SetStateAction<Photo[][]>>;
+  currentSheet: number;
+  setCurrentSheet: Dispatch<SetStateAction<number>>;
   swapPhoto: (sourceId: number, targetId: number) => void;
   borderWidth: number;
   setBorderWidth: Dispatch<SetStateAction<number>>;
@@ -34,47 +36,68 @@ interface EditorContextType {
   unit: Unit;
   setUnit: Dispatch<SetStateAction<Unit>>;
   resetEditor: () => void;
+  resetLayout: () => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
+const initialCopies = 1;
+const initialBorderWidth = 2;
+const initialPhotoSpacing = 0.3;
+const initialPhotoWidthCm = 3.15;
+const initialPhotoHeightCm = 4.14;
+const initialUnit = 'cm';
+
 export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [images, setImages] = useState<string[]>([]);
-  const [copies, setCopies] = useState<number>(1);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [borderWidth, setBorderWidth] = useState<number>(1);
-  const [photoSpacing, setPhotoSpacing] = useState<number>(0.3);
-  const [photoWidthCm, setPhotoWidthCm] = useState<number>(3.5);
-  const [photoHeightCm, setPhotoHeightCm] = useState<number>(4.5);
-  const [unit, setUnit] = useState<Unit>('cm');
+  const [copies, setCopies] = useState<number>(initialCopies);
+  const [photos, setPhotos] = useState<Photo[][]>([]);
+  const [currentSheet, setCurrentSheet] = useState<number>(0);
+  const [borderWidth, setBorderWidth] = useState<number>(initialBorderWidth);
+  const [photoSpacing, setPhotoSpacing] = useState<number>(initialPhotoSpacing);
+  const [photoWidthCm, setPhotoWidthCm] = useState<number>(initialPhotoWidthCm);
+  const [photoHeightCm, setPhotoHeightCm] = useState<number>(initialPhotoHeightCm);
+  const [unit, setUnit] = useState<Unit>(initialUnit);
 
   const swapPhoto = useCallback((sourceId: number, targetId: number) => {
-    setPhotos(currentPhotos => {
-      const sourceIndex = currentPhotos.findIndex(p => p.id === sourceId);
-      const targetIndex = currentPhotos.findIndex(p => p.id === targetId);
+    setPhotos(currentSheets => {
+      const newSheets = [...currentSheets];
+      const currentSheetPhotos = newSheets[currentSheet];
+      if (!currentSheetPhotos) return currentSheets;
+
+      const sourceIndex = currentSheetPhotos.findIndex(p => p.id === sourceId);
+      const targetIndex = currentSheetPhotos.findIndex(p => p.id === targetId);
 
       if (sourceIndex === -1 || targetIndex === -1) {
-        return currentPhotos;
+        return currentSheets;
       }
       
-      const newPhotos = [...currentPhotos];
+      const newSheetPhotos = [...currentSheetPhotos];
       // Swap the image sources
-      const sourceImageSrc = newPhotos[sourceIndex].imageSrc;
-      newPhotos[sourceIndex] = { ...newPhotos[sourceIndex], imageSrc: newPhotos[targetIndex].imageSrc };
-      newPhotos[targetIndex] = { ...newPhotos[targetIndex], imageSrc: sourceImageSrc };
-
-      return newPhotos;
+      const sourceImageSrc = newSheetPhotos[sourceIndex].imageSrc;
+      newSheetPhotos[sourceIndex] = { ...newSheetPhotos[sourceIndex], imageSrc: newSheetPhotos[targetIndex].imageSrc };
+      newSheetPhotos[targetIndex] = { ...newSheetPhotos[targetIndex], imageSrc: sourceImageSrc };
+      
+      newSheets[currentSheet] = newSheetPhotos;
+      return newSheets;
     });
+  }, [currentSheet]);
+  
+  const resetLayout = useCallback(() => {
+    setPhotos([]);
+    setCurrentSheet(0);
+    setBorderWidth(initialBorderWidth);
+    setPhotoSpacing(initialPhotoSpacing);
+    setPhotoWidthCm(initialPhotoWidthCm);
+    setPhotoHeightCm(initialPhotoHeightCm);
+    setUnit(initialUnit);
   }, []);
 
   const resetEditor = useCallback(() => {
-    setBorderWidth(1);
-    setPhotoSpacing(0.3);
-    setPhotoWidthCm(3.5);
-    setPhotoHeightCm(4.5);
-    setUnit('cm');
-    // We don't reset images or copies here, only layout adjustments
-  }, []);
+    setImages([]);
+    setCopies(initialCopies);
+    resetLayout();
+  }, [resetLayout]);
 
 
   const value = {
@@ -84,6 +107,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setCopies,
     photos,
     setPhotos,
+    currentSheet,
+    setCurrentSheet,
     swapPhoto,
     borderWidth,
     setBorderWidth,
@@ -96,6 +121,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     unit,
     setUnit,
     resetEditor,
+    resetLayout,
   };
 
   return (

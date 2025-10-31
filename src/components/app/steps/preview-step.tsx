@@ -10,7 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
-import { Download, Printer, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Download, Printer, RotateCcw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,8 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     images, 
     copies, 
     photos,
+    currentSheet,
+    setCurrentSheet,
     borderWidth, 
     setBorderWidth, 
     photoSpacing, 
@@ -41,6 +43,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     unit,
     setUnit,
     resetEditor,
+    resetLayout,
   } = useEditor();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,6 +53,8 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
   // Local state for smoother input
   const [localWidth, setLocalWidth] = useState('');
   const [localHeight, setLocalHeight] = useState('');
+
+  const totalSheets = photos.length;
 
   useEffect(() => {
     // Sync local state when global state changes (e.g., on init or unit change)
@@ -63,7 +68,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     if (user && firestore && images.length > 0) {
       const photosheetData = {
         imageUrl: images[0], // Save the first image to history for the thumbnail
-        copies: copies,
+        copies: copies * images.length,
         createdAt: serverTimestamp(),
       };
       const historyCollection = collection(firestore, 'users', user.uid, 'photosheets');
@@ -94,25 +99,29 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         const sheetWidthMm = pdf.internal.pageSize.getWidth();
         const sheetHeightMm = pdf.internal.pageSize.getHeight();
 
-        for (const photo of photos) {
-            if (photo.imageSrc) {
-                const xMm = (photo.x / 100) * sheetWidthMm;
-                const yMm = (photo.y / 100) * sheetHeightMm;
-                const photoWidthOnSheet = (photo.width / 100) * sheetWidthMm;
-                const photoHeightOnSheet = (photo.height / 100) * sheetHeightMm;
-                
-                // Draw image first. Using PNG ensures lossless compression.
-                pdf.addImage(photo.imageSrc, 'PNG', xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, undefined, 'NONE');
+        photos.forEach((sheet, index) => {
+            if (index > 0) {
+                pdf.addPage();
+            }
 
-                // Draw border on top of the image
-                if (borderWidth > 0) {
-                  const borderMm = borderWidth * 0.264583; // px to mm conversion
-                  pdf.setDrawColor(150, 150, 150); // Gray color for border
-                  pdf.setLineWidth(borderMm);
-                  pdf.rect(xMm, yMm, photoWidthOnSheet, photoHeightOnSheet);
+            for (const photo of sheet) {
+                if (photo.imageSrc) {
+                    const xMm = (photo.x / 100) * sheetWidthMm;
+                    const yMm = (photo.y / 100) * sheetHeightMm;
+                    const photoWidthOnSheet = (photo.width / 100) * sheetWidthMm;
+                    const photoHeightOnSheet = (photo.height / 100) * sheetHeightMm;
+                    
+                    pdf.addImage(photo.imageSrc, 'PNG', xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, undefined, 'FAST');
+
+                    if (borderWidth > 0) {
+                      pdf.setDrawColor(0, 0, 0); // Black border
+                      const borderMm = borderWidth * 0.264583; // Convert px to mm (approx)
+                      pdf.setLineWidth(borderMm);
+                      pdf.rect(xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, 'S'); // 'S' for stroke
+                    }
                 }
             }
-        }
+        });
         
         pdf.save('photosheet.pdf');
         saveToHistory();
@@ -144,6 +153,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
 
     saveToHistory();
 
+    // The print CSS will handle showing all pages
     setTimeout(() => {
       window.print();
       setIsProcessing(false);
@@ -151,7 +161,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
   }
 
   const handleReset = () => {
-    resetEditor();
+    resetLayout();
     toast({
       title: 'Layout Reset',
       description: 'All adjustments have been returned to their defaults.',
@@ -180,6 +190,10 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
   };
 
+  const handleBack = () => {
+    onBack();
+  }
+
   return (
     <>
       <div className="flex flex-col flex-grow p-4 sm:p-6 lg:p-8 justify-center items-center pb-20 md:pb-8">
@@ -188,11 +202,38 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
             <div className="w-full lg:w-1/2 flex-shrink-0">
               <div className="text-center mb-4">
                   <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Customize Your Photosheet</h1>
-                  <p className="text-muted-foreground mt-1">Drag and drop photos to arrange them.</p>
+                  <p className="text-muted-foreground mt-1">Drag and drop photos to arrange them on the current sheet.</p>
               </div>
-              <div className="aspect-[210/297] w-full max-w-lg mx-auto shadow-lg overflow-hidden border bg-white">
-                  <SheetPreview />
+              <div id="print-wrapper">
+                <div className="aspect-[210/297] w-full max-w-lg mx-auto shadow-lg overflow-hidden border bg-white">
+                    <SheetPreview />
+                </div>
               </div>
+
+               {totalSheets > 1 && (
+                  <div className="flex items-center justify-center gap-4 mt-4 no-print">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentSheet(s => Math.max(0, s - 1))}
+                      disabled={currentSheet === 0}
+                    >
+                      <ChevronLeft />
+                    </Button>
+                    <span className="font-medium text-muted-foreground">
+                      Sheet {currentSheet + 1} of {totalSheets}
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => setCurrentSheet(s => Math.min(totalSheets - 1, s + 1))}
+                      disabled={currentSheet === totalSheets - 1}
+                    >
+                      <ChevronRight />
+                    </Button>
+                  </div>
+                )}
+
             </div>
 
             <div className="w-full lg:w-1/2 max-w-lg no-print">
@@ -280,7 +321,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                       </Button>
                     </div>
                     <div className="flex justify-between items-center pt-2">
-                        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
+                        <Button variant="ghost" onClick={handleBack} className="text-muted-foreground">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Change Photo
                         </Button>
@@ -297,3 +338,5 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </>
   );
 }
+
+    

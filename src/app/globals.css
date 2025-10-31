@@ -127,6 +127,11 @@
   }
   .printable-area {
     display: block !important;
+    position: relative;
+    page-break-after: always;
+  }
+  #print-wrapper {
+    display: block !important;
     position: absolute;
     left: 0;
     top: 0;
@@ -137,21 +142,14 @@
     visibility: visible;
     background: white;
   }
-  .printable-area * {
+  #print-wrapper .printable-area {
     visibility: visible;
   }
   .photo-item {
     border: 1px solid black !important;
   }
-  body > *:not(.printable-area-wrapper) {
-    display: none;
-  }
-  .printable-area-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+  body > *:not(#print-wrapper) {
+    display: none !important;
   }
 }
 
