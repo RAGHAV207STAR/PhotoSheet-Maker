@@ -1,5 +1,5 @@
 
-"use-client"
+"use client";
 
 import { useEditor } from '@/context/editor-context';
 import { Image as ImageIcon } from 'lucide-react';

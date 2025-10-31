@@ -58,9 +58,10 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       }
       
       const newPhotos = [...currentPhotos];
-      const sourceImage = newPhotos[sourceIndex].imageSrc;
+      // Swap the image sources
+      const sourceImageSrc = newPhotos[sourceIndex].imageSrc;
       newPhotos[sourceIndex] = { ...newPhotos[sourceIndex], imageSrc: newPhotos[targetIndex].imageSrc };
-      newPhotos[targetIndex] = { ...newPhotos[targetIndex], imageSrc: sourceImage };
+      newPhotos[targetIndex] = { ...newPhotos[targetIndex], imageSrc: sourceImageSrc };
 
       return newPhotos;
     });

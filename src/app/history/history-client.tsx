@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, Timestamp, doc, writeBatch, deleteDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,13 +15,12 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useMemoFirebase } from '@/firebase/provider';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { ImagePreviewDialog } from '@/components/app/image-preview-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 interface Photosheet {
@@ -47,6 +46,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const pressTimer = useRef<NodeJS.Timeout | null>(null);
     const didLongPress = useRef(false);
+    const isMobile = useIsMobile();
 
     const date = sheet.createdAt ? sheet.createdAt.toDate() : new Date();
 
@@ -57,6 +57,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     };
 
     const handlePointerDown = () => {
+        if (!isMobile) return;
         didLongPress.current = false;
         pressTimer.current = setTimeout(() => {
             didLongPress.current = true;
@@ -68,22 +69,31 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     };
 
     const handlePointerUp = () => {
+        if (!isMobile) return;
         if (pressTimer.current) {
             clearTimeout(pressTimer.current);
         }
     };
     
     const handleCardClick = (e: React.MouseEvent) => {
-      if (didLongPress.current) {
-          e.preventDefault();
-          return;
-      }
-      if (selectionMode) {
-          onToggleSelect(sheet.id, e.shiftKey);
-      } else {
-          setIsPreviewOpen(true);
-      }
-    }
+        if (didLongPress.current) {
+            e.preventDefault();
+            return;
+        }
+
+        if (selectionMode) {
+            onToggleSelect(sheet.id, e.shiftKey);
+        } else {
+            if (!isMobile) {
+                // On desktop, a single click enters selection mode and selects the item
+                setSelectionMode(true);
+                onToggleSelect(sheet.id, false);
+            } else {
+                // On mobile, a single tap opens the preview
+                setIsPreviewOpen(true);
+            }
+        }
+    };
 
     const navigateToEditor = () => {
         router.push(`/editor?historyId=${sheet.id}`);
@@ -403,7 +413,6 @@ export function HistoryPageClient() {
   }
 
   const allSelected = photosheets && photosheets.length > 0 && selectedIds.size === photosheets.length;
-  const selectedIdsArray = Array.from(selectedIds);
 
   return (
     <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 pb-32 md:pb-8">

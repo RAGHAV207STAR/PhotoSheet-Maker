@@ -1,3 +1,4 @@
+
 /**
  * @description This ruleset enforces a user-ownership model for profiles and photosheets.
  *   A user can only read, update, or delete their own profile.

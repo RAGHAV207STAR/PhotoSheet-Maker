@@ -72,7 +72,7 @@ export default function BackgroundEditorPage() {
         title: 'An Error Occurred', 
         description: error.message || 'Failed to remove background.' 
       });
-      // Don't reset, let user try again
+      // Restore original image on failure
       setFinalImage(originalImage);
     } finally {
       setProcessingState('idle');

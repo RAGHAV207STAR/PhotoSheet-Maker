@@ -3,12 +3,14 @@ import { FirebaseOptions } from 'firebase/app';
 
 // This file is used to configure the Firebase project.
 // It is used by the Firebase providers to initialize the Firebase app.
+// It reads environment variables prefixed with NEXT_PUBLIC_ to be available on the client-side.
 
 export const firebaseConfig: FirebaseOptions = {
-  "projectId": "studio-8000668733-7e3c3",
-  "appId": "1:507954317689:web:1dd490812faa9d345787a8",
-  "apiKey": "AIzaSyAmN9-TyZBXv9B7j6KfFWBzHfdpFMFy4bk",
-  "authDomain": "studio-8000668733-7e3c3.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "507954317689"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };

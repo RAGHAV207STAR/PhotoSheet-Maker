@@ -21,7 +21,7 @@ export default function DraggablePhoto({ photo }: DraggablePhotoProps) {
 
   return (
     <div
-      ref={drag}
+      ref={(node) => drag(node)}
       className={cn(
         "relative w-full h-full cursor-grab",
         isDragging ? "opacity-50" : "opacity-100"

@@ -4,14 +4,27 @@
 import * as React from 'react';
 import { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-function initializeFirebaseOnClient() {
+interface FirebaseServices {
+    app: FirebaseApp | null;
+    auth: Auth | null;
+    firestore: Firestore | null;
+    error: Error | null;
+}
+
+function initializeFirebaseOnClient(): FirebaseServices {
+    // Check if essential config values are present. These are read from public env vars.
     if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
-        return { app: null, auth: null, firestore: null, error: new Error("Firebase config is missing or incomplete.") };
+        return { 
+            app: null, 
+            auth: null, 
+            firestore: null, 
+            error: new Error("Firebase config is missing or incomplete. Ensure NEXT_PUBLIC_FIREBASE_* environment variables are set.") 
+        };
     }
 
     try {
@@ -27,6 +40,7 @@ function initializeFirebaseOnClient() {
 
 
 export function FirebaseClientProvider({ children }: { children: ReactNode }) {
+  // Use useMemo to ensure Firebase is initialized only once per client session.
   const firebaseServices = useMemo(() => {
     return initializeFirebaseOnClient();
   }, []); 
@@ -41,14 +55,9 @@ export function FirebaseClientProvider({ children }: { children: ReactNode }) {
                       environment variables are not set in your hosting provider (e.g., Vercel).
                   </p>
                   <p className="text-sm text-muted-foreground mt-4">
-                      Please ensure the following environment variables are correctly set:
+                      Please ensure the environment variables starting with `NEXT_PUBLIC_FIREBASE_` are correctly set in your Vercel project settings.
                   </p>
-                  <ul className="text-xs text-left text-muted-foreground mt-2 bg-secondary p-3 rounded-md font-mono">
-                      <li>NEXT_PUBLIC_FIREBASE_API_KEY</li>
-                      <li>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</li>
-                      <li>NEXT_PUBLIC_FIREBASE_PROJECT_ID</li>
-                      <li>...and other Firebase config values.</li>
-                  </ul>
+                  <pre className="mt-4 p-4 bg-secondary text-left text-xs rounded-md w-full max-w-lg overflow-x-auto"><code>{firebaseServices.error?.message || "Unknown initialization error."}</code></pre>
               </div>
           </div>
       )
