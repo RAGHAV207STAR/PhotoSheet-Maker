@@ -38,7 +38,7 @@ export default function BottomNavbar() {
               className={cn(
                 'flex flex-col items-center justify-center text-sm w-full h-full transition-all duration-300 rounded-lg',
                 isActive 
-                  ? 'text-primary bg-primary/10 shadow-[0_4px_14px_rgba(var(--primary),0.3)] scale-105' 
+                  ? 'text-primary bg-primary/10' 
                   : 'text-muted-foreground hover:text-primary hover:bg-muted/50'
               )}
             >

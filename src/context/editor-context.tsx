@@ -1,5 +1,5 @@
 
-"use client"
+"use client";
 
 import type { Dispatch, SetStateAction } from 'react';
 import { createContext, useContext, useState, useCallback } from 'react';

@@ -18,6 +18,8 @@ export const usePWAInstall = () => {
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleBeforeInstallPrompt = (event: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       event.preventDefault();

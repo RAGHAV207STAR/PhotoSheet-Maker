@@ -1,0 +1,58 @@
+
+/**
+ * @description This ruleset enforces a user-ownership model for profiles and photosheets.
+ *   A user can only read, update, or delete their own profile.
+ *   A user can only read, write their own photosheets.
+ *   Listing user documents is explicitly denied.
+ * @dataStructure
+ *   /users/{userId} (UserProfile):  User profile data.
+ *   /users/{userId}/photosheets/{photosheetId} (Photosheet): Photosheets created by the user.
+ * @keySecurityDecisions
+ *   - User listing is not allowed.
+ *   - All write operations require authentication.
+ *   - Flexible on data shapes to allow for rapid iteration, but enforces authorization.
+ * @denormalizationForAuthorization
+ *   The rules rely on path-based authorization and do not require denormalization. The `request.auth.uid` variable is matched against the `userId` path segment to ensure ownership.
+ * @structuralSegregation
+ *   There is no use of Structural Segregation, because there is no data that is both private and public.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to user profiles.
+     * @path /users/{userId}
+     * @allow (read, update, delete): Authenticated user with matching UID can access their profile. Example: `request.auth.uid == 'user_abc'`
+     * @deny (read, update, delete): Authenticated user attempting to access another user's profile. Example: `request.auth.uid == 'user_xyz'` trying to read `/users/user_abc`
+     * @deny create: User ID must match auth UID.
+     * @principle Enforces document ownership for reads and writes.
+     */
+    match /users/{userId} {
+      allow read, update, delete: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+    
+
+      /**
+       * @description Controls access to photosheets belonging to a specific user.
+       * @path /users/{userId}/photosheets/{photosheetId}
+       * @allow (read, write): Authenticated user with matching UID can access their photosheets. Example: `request.auth.uid == 'user_abc'`
+       * @deny (read, write): Authenticated user attempting to access another user's photosheets. Example: `request.auth.uid == 'user_xyz'` trying to read `/users/user_abc/photosheets/sheet_123`
+       * @principle Restricts access to a user's own photosheets.
+       */
+      match /photosheets/{photosheetId} {
+        allow get, list, create, update, delete: if isSignedIn() && isOwner(userId);
+      }
+    }
+  }
+
+  // Helper Functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+}
