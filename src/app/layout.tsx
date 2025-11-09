@@ -2,16 +2,8 @@
 import type {Metadata, Viewport} from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
-import BottomNavbar from '@/components/app/bottom-navbar';
-import Header from '@/components/app/header';
-import { EditorProvider } from '@/context/editor-context';
 import { FirebaseClientProvider } from '@/firebase';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/app/app-sidebar';
-import GoogleAnalytics from '@/components/app/google-analytics';
-import SessionValidator from '@/components/app/session-validator';
-import { LanguageProvider } from '@/context/language-context';
+import AppLayout from '@/components/app/app-layout';
 
 const APP_NAME = "Photosheet Maker";
 const APP_URL = "https://photosheet-maker.vercel.app";
@@ -145,32 +137,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable}`}>
       <head>
         <meta name="theme-color" content="#ADD8E6" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className={`font-body antialiased`}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <GoogleAnalytics />
-      <FirebaseClientProvider>
-          <EditorProvider>
-            <LanguageProvider>
-              <SidebarProvider defaultOpen={false}>
-                  <SessionValidator />
-                  <div className="group/sidebar-wrapper flex min-h-screen">
-                      <AppSidebar />
-                      <SidebarInset>
-                        <div className="flex flex-col flex-1 min-h-screen">
-                            <Header />
-                            <main className="flex-grow flex flex-col">{children}</main>
-                        </div>
-                      </SidebarInset>
-                  </div>
-                  <Toaster />
-                  <BottomNavbar />
-              </SidebarProvider>
-            </LanguageProvider>
-          </EditorProvider>
+        <FirebaseClientProvider>
+          <AppLayout>{children}</AppLayout>
         </FirebaseClientProvider>
       </body>
     </html>
