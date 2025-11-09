@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEditor } from '@/context/editor-context';
@@ -78,7 +77,7 @@ export default function SheetPreview() {
     const allImageSources: string[] = [];
     images.forEach(imageSrc => {
       for (let i = 0; i < copies; i++) {
-        allImageSources.push(imageSrc);
+        allImageSources.push(imageSrc.src);
       }
     });
   
@@ -114,6 +113,7 @@ export default function SheetPreview() {
     <>
       {photos.map((sheet, sheetIndex) => (
         <div
+          id={`sheet-${sheetIndex}`}
           key={sheetIndex}
           className="printable-area w-full h-full relative bg-white"
           style={{ display: sheetIndex === currentSheet ? 'block' : 'none' }}
@@ -144,4 +144,3 @@ export default function SheetPreview() {
     </>
   );
 }
-

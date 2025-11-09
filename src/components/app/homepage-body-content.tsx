@@ -5,11 +5,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Download, Zap, Printer, Settings, ShieldCheck, Gift, FileQuestion, Wand2 } from 'lucide-react';
+import { Download, Zap, Printer, Settings, ShieldCheck, Gift, FileQuestion } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { useEditor } from '@/context/editor-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import {
@@ -18,11 +17,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
+import { CollageTeaser } from './collage-teaser';
 
 const copyOptions = [1, 2, 4, 6, 8, 10, 12, 20, 30];
 
-export default function HomepageBody() {
+interface HomepageBodyContentProps {
+    onCollageClick: () => void;
+}
+
+export default function HomepageBodyContent({ onCollageClick }: HomepageBodyContentProps) {
   const [selectedCopies, setSelectedCopies] = useState<number | null>(null);
   const router = useRouter();
   const { canInstall, install } = usePWAInstall();
@@ -51,27 +54,27 @@ export default function HomepageBody() {
     { 
       icon: Gift, 
       title: "Completely Free", 
-      description: "Create unlimited photo sheets without any cost. Our tool is 100% free to use." 
+      description: "Create unlimited photo sheets and collages without any cost. Our tool is 100% free." 
     },
     { 
       icon: Zap, 
       title: "Fast and Easy", 
-      description: "From upload to download in under a minute. Our streamlined process saves you time and effort." 
+      description: "From upload to download in under a minute. Our streamlined process saves you time." 
     },
     { 
       icon: Printer,
-      title: "Print-Ready A4 Sheets",
-      description: "We automatically arrange your photos on a standard A4 sheet, perfectly optimized for printing." 
+      title: "Print-Ready Sheets",
+      description: "We automatically arrange your photos on standard-sized sheets, perfectly optimized for printing." 
     },
     { 
       icon: Settings, 
-      title: "Customizable Layout", 
-      description: "Easily adjust spacing and borders to meet specific requirements for visa or ID applications." 
+      title: "Customizable Layouts", 
+      description: "Easily adjust spacing, borders, and photo sizes to meet your specific requirements." 
     },
     { 
       icon: ShieldCheck, 
       title: "No Installation Needed", 
-      description: "Our photo sheet maker works in your browser. Install it as a PWA for an even better experience." 
+      description: "Works directly in your browser. Install it as a PWA for an even better offline experience." 
     }
   ];
 
@@ -85,6 +88,7 @@ export default function HomepageBody() {
                   </Button>
               </div>
           )}
+
           <div className="w-full max-w-4xl">
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -93,11 +97,11 @@ export default function HomepageBody() {
               <Card className="w-full bg-transparent border-0 rounded-xl p-0 relative">
                 <div className="rounded-xl p-6">
                     <CardHeader className="text-center p-0 pb-6">
-                      <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">Select Copies</CardTitle>
+                      <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">Passport Photo Quick Start</CardTitle>
                       <CardDescription className="text-slate-600">How many photos do you need on the sheet?</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 w-full">
+                      <div className="grid grid-cols-3 gap-4 w-full">
                         {copyOptions.map((num) => (
                           <Button
                             key={num}
@@ -119,43 +123,21 @@ export default function HomepageBody() {
               </Card>
             </motion.div>
           </div>
-  
+
           <div className="w-full max-w-4xl">
-               <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className="rounded-2xl bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 p-1 shadow-2xl"
-               >
-                  <Card className="w-full bg-slate-900/80 backdrop-blur-lg border-0 rounded-xl p-0 relative">
-                      <div className="rounded-xl p-6 text-center">
-                          <div className="flex justify-center mb-4">
-                               <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                                   <Wand2 className="h-8 w-8 text-white" />
-                               </div>
-                          </div>
-                          <CardTitle className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-                              AI Background Editor
-                          </CardTitle>
-                          <CardDescription className="text-slate-300 mt-2">Remove or change the background of your photo with one click.</CardDescription>
-                          <CardContent className="p-0 pt-6 flex justify-center">
-                            <Button asChild size="lg" className="bg-white text-slate-900 font-bold hover:bg-slate-200 shadow-lg hover:shadow-xl transition-all hover:scale-105 animate-pulse-glow">
-                                <Link href="/background-editor">Start Editing</Link>
-                            </Button>
-                          </CardContent>
-                      </div>
-                  </Card>
-              </motion.div>
+             <CollageTeaser onCollageClick={onCollageClick} />
           </div>
   
-          <section className="w-full max-w-5xl mx-auto py-12 px-4 md:px-6 text-slate-800">
+          <section className="w-full max-w-4xl mx-auto py-12 px-4 md:px-0 text-slate-800">
               <div className="text-center">
                   <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">
-                      Your Go-To Photo Sheet Maker Online
+                      Your All-in-One Photo Solution
                   </h2>
                   <p className="mt-4 text-lg text-slate-600">
-                      Welcome to Photosheet Maker, the simplest way to prepare passport photos, visa pictures, and ID photos for printing. Our free ID photo tool lets you upload your image, select the number of copies, and instantly generate a print-ready A4 sheet. No software, no sign-ups, no hassle.
+                      Welcome to Photosheet Maker, the simplest way to prepare photos for any occasion. Create print-ready passport, visa, and ID photos in seconds, or unleash your creativity with our flexible photo collage maker. No software, no sign-ups, no hassle.
                   </p>
                   <p className="mt-2 text-lg text-slate-600">
-                      Whether you need to make a passport photo online or create a sheet of identical images for official documents, our passport size photo maker has you covered. The intuitive interface guides you through the process, from uploading to customizing the layout with adjustable margins. Get professional results in seconds with our powerful photo sheet creator.
+                      Whether you need a sheet of official photos or a beautiful collage of your favorite memories, our powerful online tools have you covered. The intuitive interface guides you through the process, from uploading images to customizing the final layout. Get professional results instantly.
                   </p>
               </div>
   
@@ -184,34 +166,34 @@ export default function HomepageBody() {
                       <h3 className="text-3xl font-bold text-center animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">Frequently Asked Questions</h3>
                   </div>
                   <Accordion type="single" collapsible className="w-full space-y-4">
-                      <AccordionItem value="item-1" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6">How do I make a passport photo online with this tool?</AccordionTrigger>
+                       <AccordionItem value="item-1" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
+                          <AccordionTrigger className="px-6 text-left">How does the collage maker work?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          To make a passport photo online, simply select the number of copies you need, upload your image on the next screen, and our tool will automatically arrange it on an A4 sheet. You can then download the sheet as a PDF and print it.
+                          Simply click the "Photo Collage" card, upload multiple images, and then arrange them on the sheet. You can use our automatic layout feature for a quick grid or switch to manual mode to drag, resize, and position each photo exactly how you want it.
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6">Is this passport size photo maker really free?</AccordionTrigger>
+                          <AccordionTrigger className="px-6 text-left">How do I make a passport photo online with this tool?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          Yes, absolutely! Photosheet Maker is a completely free ID photo tool. You can create and download as many photo sheets as you need without any charges or hidden fees.
+                          To make a passport photo online, simply select the number of copies you need from the "Quick Start" section, upload your image on the next screen, and our tool will automatically arrange it on an A4 sheet. You can then download the sheet as a PDF and print it.
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-3" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6">Can I adjust the photo size for specific country requirements?</AccordionTrigger>
+                          <AccordionTrigger className="px-6 text-left">Is this passport size photo maker really free?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          Currently, our tool uses a standard passport photo size (3.5 x 4.5 cm). We plan to add custom size selection in a future update to meet requirements for different countries.
+                          Yes, absolutely! Photosheet Maker is a completely free tool for both passport photos and collages. You can create and download as many photo sheets as you need without any charges.
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-4" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6">What happens to my uploaded photos?</AccordionTrigger>
+                          <AccordionTrigger className="px-6 text-left">What happens to my uploaded photos?</AccordionTrigger>
                           <AccordionContent className="px-6">
                           Your privacy is important. If you are not logged in, your photos are processed in your browser and are never stored on our servers. If you are logged in, your generated sheets are saved to your private history for easy reprinting, protected by security rules.
                           </AccordionContent>
                       </AccordionItem>
                        <AccordionItem value="item-5" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6">What's the best way to print the photosheet?</AccordionTrigger>
+                          <AccordionTrigger className="px-6 text-left">What's the best way to print the photosheet?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          For best results, download the generated PDF and print it on A4 photo paper. Ensure your printer settings are set to '100%' or 'Actual Size' to avoid scaling issues.
+                          For best results, download the generated PDF and print it on the appropriate paper size (e.g., A4 photo paper). Ensure your printer settings are set to '100%' or 'Actual Size' to avoid scaling issues.
                           </AccordionContent>
                       </AccordionItem>
                   </Accordion>
@@ -221,9 +203,9 @@ export default function HomepageBody() {
                   <Card className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-2xl animate-gradient-shift bg-[length:200%_auto]">
                       <CardContent className="p-8 flex flex-col items-center text-center">
                           <h3 className="text-3xl font-bold">Ready to Start?</h3>
-                          <p className="mt-2 text-lg text-blue-100">Start making your photo sheets now — it’s free!</p>
+                          <p className="mt-2 text-lg text-blue-100">Create your perfect photo layout now — it’s free!</p>
                           <Button asChild size="lg" className="mt-6 bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg transition-all">
-                              <Link href="#top">Select Copies to Begin</Link>
+                              <Link href="#top">Select an Option Above to Begin</Link>
                           </Button>
                       </CardContent>
                   </Card>

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEditor } from '@/context/editor-context';
@@ -8,13 +9,15 @@ import { useState, useEffect } from 'react';
 import SheetPreview from '../sheet-preview';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
-import { Download, Printer, RotateCcw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
+import { Download, Printer, RotateCcw, ArrowLeft, ChevronLeft, ChevronRight, FileDown, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import * as htmlToImage from 'html-to-image';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 interface PreviewStepProps {
@@ -59,7 +62,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
   useEffect(() => {
     // Sync local state when global state changes (e.g., on init or unit change)
     const displayWidth = unit === 'cm' ? photoWidthCm : photoWidthCm * CM_TO_IN;
-    const displayHeight = unit === 'cm' ? photoHeightCm : photoHeightCm * IN_TO_CM;
+    const displayHeight = unit === 'cm' ? photoHeightCm : photoHeightCm * CM_TO_IN;
     setLocalWidth(displayWidth.toFixed(2));
     setLocalHeight(displayHeight.toFixed(2));
   }, [photoWidthCm, photoHeightCm, unit]);
@@ -67,16 +70,16 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
   const saveToHistory = () => {
     if (user && firestore && images.length > 0) {
       const photosheetData = {
-        imageUrl: images[0], // Save the first image to history for the thumbnail
-        copies: copies * images.length,
+        imageUrls: images.map(i => i.src), // Save all uploaded images
+        copies: copies, // This should just be the multiplier
         createdAt: serverTimestamp(),
       };
       const historyCollection = collection(firestore, 'users', user.uid, 'photosheets');
-      addDocumentNonBlocking(historyCollection, photosheetData);
+      addDoc(historyCollection, photosheetData);
     }
   }
 
-  const handleDownload = async () => {
+  const handleDownloadPdf = async () => {
     if (photos.length === 0 || images.length === 0) {
        toast({ title: 'Sheet not ready', description: 'Please upload at least one image.', variant: 'destructive' });
        return;
@@ -99,29 +102,17 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         const sheetWidthMm = pdf.internal.pageSize.getWidth();
         const sheetHeightMm = pdf.internal.pageSize.getHeight();
 
-        photos.forEach((sheet, index) => {
+        for (const [index, sheet] of photos.entries()) {
             if (index > 0) {
                 pdf.addPage();
             }
 
-            for (const photo of sheet) {
-                if (photo.imageSrc) {
-                    const xMm = (photo.x / 100) * sheetWidthMm;
-                    const yMm = (photo.y / 100) * sheetHeightMm;
-                    const photoWidthOnSheet = (photo.width / 100) * sheetWidthMm;
-                    const photoHeightOnSheet = (photo.height / 100) * sheetHeightMm;
-                    
-                    pdf.addImage(photo.imageSrc, 'PNG', xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, undefined, 'FAST');
-
-                    if (borderWidth > 0) {
-                      pdf.setDrawColor(0, 0, 0); // Black border
-                      const borderMm = borderWidth * 0.264583; // Convert px to mm (approx)
-                      pdf.setLineWidth(borderMm);
-                      pdf.rect(xMm, yMm, photoWidthOnSheet, photoHeightOnSheet, 'S'); // 'S' for stroke
-                    }
-                }
+            const sheetElement = document.getElementById(`sheet-${index}`);
+            if (sheetElement) {
+                const dataUrl = await htmlToImage.toPng(sheetElement, { pixelRatio: 3 });
+                pdf.addImage(dataUrl, 'PNG', 0, 0, sheetWidthMm, sheetHeightMm);
             }
-        });
+        }
         
         pdf.save('photosheet.pdf');
         saveToHistory();
@@ -138,6 +129,42 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
   }
 
+  const handleDownloadImage = async () => {
+     if (photos.length === 0 || images.length === 0) {
+       toast({ title: 'Sheet not ready', description: 'Please upload at least one image.', variant: 'destructive' });
+       return;
+    }
+
+    const sheetElement = document.getElementById(`sheet-${currentSheet}`);
+    if (!sheetElement) {
+      toast({ title: 'Preview not found', description: 'Could not find the sheet preview element.', variant: 'destructive' });
+      return;
+    }
+
+    setIsProcessing(true);
+    toast({
+      title: 'Generating Image',
+      description: 'Your image is being created...',
+    });
+
+    try {
+      const dataUrl = await htmlToImage.toPng(sheetElement, { pixelRatio: 3 });
+      const link = document.createElement('a');
+      link.download = `photosheet-page-${currentSheet + 1}.png`;
+      link.href = dataUrl;
+      link.click();
+      saveToHistory();
+    } catch (error) {
+      console.error("Error generating image:", error);
+      toast({
+            title: 'Download Failed',
+            description: 'An error occurred while generating the image.',
+            variant: 'destructive'
+        });
+    } finally {
+        setIsProcessing(false);
+    }
+  }
 
   const handlePrint = () => {
     if (photos.length === 0 || images.length === 0) {
@@ -196,8 +223,8 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
 
   return (
     <>
-      <div className="flex flex-col flex-grow p-4 sm:p-6 lg:p-8 justify-center items-center pb-20 md:pb-8">
-        <main className="w-full flex flex-col lg:flex-row items-start justify-center gap-8">
+      <div className="w-full flex-grow flex flex-col p-4 sm:p-6 lg:p-8 justify-center items-center pb-20 md:pb-8">
+        <main className="w-full max-w-6xl flex flex-col lg:flex-row items-start justify-center gap-8">
             
             <div className="w-full lg:w-1/2 flex-shrink-0">
               <div className="text-center mb-4">
@@ -310,20 +337,35 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                         />
                     </div>
                     <Separator />
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button variant="default" onClick={handleDownload} disabled={images.length === 0 || isProcessing} size="lg">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                      </Button>
-                      <Button variant="secondary" onClick={handlePrint} disabled={images.length === 0 || isProcessing} size="lg">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print
-                      </Button>
+                     <div className="grid grid-cols-2 gap-3">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="default" size="lg" disabled={images.length === 0 || isProcessing}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={handleDownloadPdf}>
+                                    <FileDown className="mr-2 h-4 w-4" />
+                                    Download as PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleDownloadImage}>
+                                    <ImageIcon className="mr-2 h-4 w-4" />
+                                    Download as Image
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Button variant="secondary" onClick={handlePrint} disabled={images.length === 0 || isProcessing} size="lg">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
                     </div>
                     <div className="flex justify-between items-center pt-2">
                         <Button variant="ghost" onClick={handleBack} className="text-muted-foreground">
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Change Photo
+                            Change Photos
                         </Button>
                         <Button variant="outline" onClick={handleReset} disabled={isProcessing} size="sm">
                             <RotateCcw className="mr-2 h-4 w-4" />
@@ -338,5 +380,3 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </>
   );
 }
-
-    

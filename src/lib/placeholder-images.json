@@ -18,5 +18,91 @@
       "imageUrl": "https://images.unsplash.com/photo-1531845116688-48819b3b68d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcmludGVkJTIwcGhvdG9zfGVufDB8fHx8MTc2MTUzNjcxNXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "printed photos"
     }
-  ]
+  ],
+  "galleryImages": [
+    {
+      "id": "gallery-1",
+      "description": "A beautiful landscape with mountains and a lake.",
+      "imageUrl": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "landscape mountains"
+    },
+    {
+      "id": "gallery-2",
+      "description": "A close-up of a person smiling.",
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "portrait person"
+    },
+    {
+      "id": "gallery-3",
+      "description": "A modern architectural building.",
+      "imageUrl": "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "architecture building"
+    },
+    {
+      "id": "gallery-4",
+      "description": "A cute dog playing in a park.",
+      "imageUrl": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "dog pet"
+    },
+    {
+      "id": "gallery-5",
+      "description": "Delicious food on a plate.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "food plate"
+    },
+    {
+      "id": "gallery-6",
+      "description": "A person hiking in the forest.",
+      "imageUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "travel hiking"
+    },
+    {
+      "id": "gallery-7",
+      "description": "City skyline at night.",
+      "imageUrl": "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "city skyline"
+    },
+    {
+      "id": "gallery-8",
+      "description": "A colorful abstract painting.",
+      "imageUrl": "https://images.unsplash.com/photo-1502691851199-a9918a7b3734?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "abstract art"
+    },
+    {
+      "id": "gallery-9",
+      "description": "A sandy beach with waves.",
+      "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723a9ce6890?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "beach ocean"
+    },
+    {
+      "id": "gallery-10",
+      "description": "A cup of coffee on a table.",
+      "imageUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "coffee cafe"
+    },
+    {
+      "id": "gallery-11",
+      "description": "A person reading a book.",
+      "imageUrl": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "book reading"
+    },
+    {
+      "id": "gallery-12",
+      "description": "A classic car on the street.",
+      "imageUrl": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80",
+      "imageHint": "car vintage"
+    }
+  ],
+  "collageHeroImage": {
+    "id": "collage-hero",
+    "description": "A creative vision board with overlapping polaroid photos of people, travel, and lifestyle moments.",
+    "imageUrl": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+    "imageHint": "vision board collage"
+  },
+  "templatesHeroImage": {
+    "id": "templates-hero",
+    "description": "A clean, aesthetic workspace showing design templates or a computer with design software",
+    "imageUrl": "https://images.unsplash.com/photo-1616628182509-d5b4e3ef3b9a?auto=format&fit=crop&w=1200&q=80",
+    "imageHint": "creative templates"
+  }
 }

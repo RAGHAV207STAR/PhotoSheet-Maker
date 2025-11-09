@@ -2,26 +2,37 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, History, User } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, User, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
+import { useEditor } from '@/context/editor-context';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setImages } = useEditor();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const handlePassportClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setImages([]); // Clear any existing images from other flows
+    router.push('/editor');
+  };
+
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/history', label: 'History', icon: History },
+    { href: '/editor', label: 'Passport', icon: ImageIcon, onClick: handlePassportClick },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
-  if (!isClient || pathname === '/login') {
+  // Hide navbar on login, editor, and settings pages
+  const hiddenPaths = ['/login', '/editor', '/settings'];
+  if (!isClient || hiddenPaths.some(path => pathname.startsWith(path))) {
     return null;
   }
 
@@ -35,6 +46,7 @@ export default function BottomNavbar() {
             <Link
               href={item.href}
               key={item.href}
+              onClick={item.onClick}
               className={cn(
                 'flex flex-col items-center justify-center text-sm w-full h-full transition-all duration-300 rounded-lg',
                 isActive 

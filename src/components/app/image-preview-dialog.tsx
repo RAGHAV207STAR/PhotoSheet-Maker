@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Sheet, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ImagePreviewDialogProps {
   isOpen: boolean;
@@ -16,13 +17,15 @@ interface ImagePreviewDialogProps {
 }
 
 export function ImagePreviewDialog({ isOpen, onOpenChange, imageUrl, onViewSheet, title = "Image Preview" }: ImagePreviewDialogProps) {
+  const isMobile = useIsMobile();
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent 
         className="max-w-3xl p-0 gap-0"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="relative aspect-[4/3] w-full bg-slate-900/10 flex items-center justify-center overflow-hidden rounded-md">
+        <div className="relative aspect-square sm:aspect-[4/3] w-full bg-slate-900/10 flex items-center justify-center overflow-hidden rounded-t-md sm:rounded-md">
             {imageUrl ? (
               <Image src={imageUrl} alt={title} fill className="object-contain" />
             ) : (
@@ -34,21 +37,32 @@ export function ImagePreviewDialog({ isOpen, onOpenChange, imageUrl, onViewSheet
                     <DialogTitle className="text-white text-lg font-bold" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.5)'}}>{title}</DialogTitle>
                 </DialogHeader>
             </div>
-            <DialogFooter className="absolute bottom-0 left-0 right-0 p-4 bg-transparent flex-row sm:justify-end gap-2">
-                <Button variant="secondary" onClick={() => onOpenChange(false)}>
-                    <X className="mr-2 h-4 w-4" />
-                    Close
-                </Button>
-                <Button onClick={onViewSheet}>
-                    <Sheet className="mr-2 h-4 w-4" />
-                    View Sheet
-                </Button>
-            </DialogFooter>
+            {!isMobile && (
+              <DialogFooter className="absolute bottom-0 left-0 right-0 p-4 bg-transparent flex-row sm:justify-end gap-2">
+                  <Button variant="secondary" onClick={() => onOpenChange(false)}>
+                      <X className="mr-2 h-4 w-4" />
+                      Close
+                  </Button>
+                  <Button onClick={onViewSheet}>
+                      <Sheet className="mr-2 h-4 w-4" />
+                      View Sheet
+                  </Button>
+              </DialogFooter>
+            )}
         </div>
+        {isMobile && (
+           <DialogFooter className="p-4 flex-row sm:justify-end gap-2 bg-background rounded-b-md">
+              <Button variant="secondary" onClick={() => onOpenChange(false)} className="w-full">
+                  <X className="mr-2 h-4 w-4" />
+                  Close
+              </Button>
+              <Button onClick={onViewSheet} className="w-full">
+                  <Sheet className="mr-2 h-4 w-4" />
+                  View Sheet
+              </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
-
-
-    

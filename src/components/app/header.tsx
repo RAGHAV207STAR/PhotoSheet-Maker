@@ -27,8 +27,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 left-0 right-0 p-2 border-b items-center justify-between bg-gradient-to-r from-cyan-50 via-blue-100 to-purple-200 z-40 no-print animate-gradient-shift bg-[length:200%_auto] flex">
-      <div className="flex items-center gap-4">
-        <SidebarTrigger className="hidden md:flex" />
+      <div className="flex items-center gap-2 sm:gap-4">
+        <SidebarTrigger className="flex" />
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
           <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
         </Link>

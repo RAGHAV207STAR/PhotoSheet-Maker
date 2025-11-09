@@ -33,10 +33,13 @@
       "type": "object",
       "description": "Represents a generated photosheet record.",
       "properties": {
-        "imageUrl": {
-          "type": "string",
-          "format": "uri",
-          "description": "The data URI of the uploaded image."
+        "imageUrls": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "The data URIs of the uploaded images."
         },
         "copies": {
           "type": "number",
@@ -48,7 +51,7 @@
           "description": "The timestamp when the photosheet was created."
         }
       },
-      "required": ["imageUrl", "copies", "createdAt"]
+      "required": ["imageUrls", "copies", "createdAt"]
     }
   },
   "auth": {
