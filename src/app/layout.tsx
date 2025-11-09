@@ -11,6 +11,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app/app-sidebar';
 import GoogleAnalytics from '@/components/app/google-analytics';
 import SessionValidator from '@/components/app/session-validator';
+import { LanguageProvider } from '@/context/language-context';
 
 const APP_NAME = "Photosheet Maker";
 const APP_URL = "https://photosheet-maker.vercel.app";
@@ -55,6 +56,14 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
+      { url: "/logo.png", sizes: "16x16", type: "image/png" },
+      { url: "/logo.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png" }],
   },
   appleWebApp: {
     capable: true,
@@ -133,10 +142,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} light`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#ADD8E6" />
       </head>
       <body className={`font-body antialiased`}>
       <script
@@ -146,18 +154,22 @@ export default function RootLayout({
       <GoogleAnalytics />
       <FirebaseClientProvider>
           <EditorProvider>
-            <SidebarProvider defaultOpen={false}>
-                <SessionValidator />
-                <div className="group/sidebar-wrapper flex min-h-screen">
-                    <AppSidebar />
-                    <SidebarInset>
-                    <Header />
-                    <main className="flex-grow flex flex-col">{children}</main>
-                    </SidebarInset>
-                </div>
-                <Toaster />
-                <BottomNavbar />
-            </SidebarProvider>
+            <LanguageProvider>
+              <SidebarProvider defaultOpen={false}>
+                  <SessionValidator />
+                  <div className="group/sidebar-wrapper flex min-h-screen">
+                      <AppSidebar />
+                      <SidebarInset>
+                        <div className="flex flex-col flex-1 min-h-screen">
+                            <Header />
+                            <main className="flex-grow flex flex-col">{children}</main>
+                        </div>
+                      </SidebarInset>
+                  </div>
+                  <Toaster />
+                  <BottomNavbar />
+              </SidebarProvider>
+            </LanguageProvider>
           </EditorProvider>
         </FirebaseClientProvider>
       </body>

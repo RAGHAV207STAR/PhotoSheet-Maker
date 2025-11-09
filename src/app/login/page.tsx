@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
+import dynamic from 'next/dynamic';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -23,9 +24,8 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
+const LoginPageContent = () => {
+    const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -191,3 +191,15 @@ export default function LoginPage() {
     </div>
   );
 }
+
+const LoginPage = dynamic(() => Promise.resolve(LoginPageContent), {
+    loading: () => <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-100">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+            <GoogleSpinner />
+            <span className="font-semibold text-lg">Loading...</span>
+        </div>
+      </div>,
+    ssr: false
+});
+
+export default LoginPage;

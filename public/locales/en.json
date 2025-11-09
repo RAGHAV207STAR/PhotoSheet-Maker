@@ -1,0 +1,11 @@
+
+{
+    "settings": {
+        "title": "Settings",
+        "description": "Manage your account and application settings.",
+        "language": {
+            "title": "Language",
+            "description": "Choose the language for the application interface."
+        }
+    }
+}

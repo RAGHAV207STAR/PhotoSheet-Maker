@@ -25,7 +25,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Photosheet {
   id: string;
-  imageUrl: string;
+  imageUrls: string[];
   copies: number;
   createdAt: Timestamp | null;
 }
@@ -49,6 +49,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     const isMobile = useIsMobile();
 
     const date = sheet.createdAt ? sheet.createdAt.toDate() : new Date();
+    const thumbnailUrl = sheet.imageUrls?.[0] || '';
 
     const confirmDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -57,19 +58,21 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     };
 
     const handlePointerDown = () => {
-        if (!isMobile) return;
         didLongPress.current = false;
         pressTimer.current = setTimeout(() => {
             didLongPress.current = true;
-            if (!selectionMode) {
-                setSelectionMode(true);
-                onToggleSelect(sheet.id, false);
+            if (isMobile) {
+                setIsPreviewOpen(true);
+            } else {
+                 if (!selectionMode) {
+                    setSelectionMode(true);
+                    onToggleSelect(sheet.id, false);
+                }
             }
         }, 500); // 500ms for a long press
     };
 
     const handlePointerUp = () => {
-        if (!isMobile) return;
         if (pressTimer.current) {
             clearTimeout(pressTimer.current);
         }
@@ -147,7 +150,13 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
                         )}
                         <CardContent className="p-0">
                             <div className="relative aspect-[4/3] w-full rounded-t-lg overflow-hidden bg-gray-100">
-                                <Image src={sheet.imageUrl} alt={`Photosheet from ${format(date, "MMMM d, yyyy")}`} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                                {thumbnailUrl ? (
+                                    <Image src={thumbnailUrl} alt={`Photosheet from ${format(date, "MMMM d, yyyy")}`} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-secondary">
+                                        <ImageIcon className="w-10 h-10 text-muted-foreground" />
+                                    </div>
+                                )}
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                         </CardContent>
@@ -156,7 +165,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">
                                 <p className="font-semibold">{format(date, "MMMM d, yyyy")}</p>
-                                <p className="text-sm text-muted-foreground">{sheet.copies} copies</p>
+                                <p className="text-sm text-muted-foreground">{sheet.copies * (sheet.imageUrls?.length || 1)} copies total</p>
                                 <p className="text-xs text-muted-foreground mt-2">{format(date, "'at' h:mm a")}</p>
                             </div>
                             {!selectionMode && (
@@ -168,13 +177,13 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                        <DropdownMenuItem onClick={handlePreviewImage}>
+                                        <DropdownMenuItem onClick={handlePreviewImage} disabled={!thumbnailUrl}>
                                             <ImageIcon className="mr-2 h-4 w-4" />
                                             Preview Image
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={navigateToEditor}>
                                             <View className="mr-2 h-4 w-4" />
-                                            Preview Sheet
+                                            View/Edit Sheet
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => handleActionWithMessage('Download')}>
@@ -214,7 +223,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
             <ImagePreviewDialog 
                 isOpen={isPreviewOpen} 
                 onOpenChange={setIsPreviewOpen}
-                imageUrl={sheet.imageUrl}
+                imageUrl={thumbnailUrl}
                 onViewSheet={navigateToEditor}
                 title={`Photo from ${format(date, "MMMM d, yyyy")}`}
             />

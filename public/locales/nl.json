@@ -1,0 +1,11 @@
+
+{
+    "settings": {
+        "title": "Instellingen",
+        "description": "Beheer uw account- en applicatie-instellingen.",
+        "language": {
+            "title": "Taal",
+            "description": "Kies de taal voor de applicatie-interface."
+        }
+    }
+}

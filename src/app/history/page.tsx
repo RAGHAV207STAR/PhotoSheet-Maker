@@ -1,9 +1,8 @@
 
 import { Suspense } from 'react';
-import { HistoryPageClient } from './history-client';
-import { GoogleSpinner } from '@/components/ui/google-spinner';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { HistoryLoader } from './history-loader';
 
 // This is now a server component that wraps the client component.
 export default function HistoryPage() {
@@ -27,7 +26,7 @@ export default function HistoryPage() {
             </div>
         </div>
     }>
-      <HistoryPageClient />
+      <HistoryLoader />
     </Suspense>
   );
 }
