@@ -11,17 +11,10 @@ const config: Config = {
   ],
   prefix: "",
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       fontFamily: {
         body: ['var(--font-inter)', 'sans-serif'],
-        headline: ['var(--font-inter)', 'sans-serif'],
+        headline: ['Brush Script MT', 'Brush Script Std', 'cursive'],
         code: ['monospace'],
       },
       colors: {
@@ -101,6 +94,10 @@ const config: Config = {
         'pulse-glow': {
           '0%, 100%': { boxShadow: '0 0 20px rgba(255, 255, 255, 0.4)' },
           '50%': { boxShadow: '0 0 30px rgba(255, 255, 255, 0.7)' },
+        },
+        'shine': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         },
       },
       animation: {
