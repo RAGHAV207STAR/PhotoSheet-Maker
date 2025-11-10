@@ -1,9 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import { useUser } from "@/firebase";
 import { useState, useEffect } from "react";
@@ -12,18 +10,23 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Header() {
   const pathname = usePathname();
-  const { user, isUserLoading } = useUser();
   const [isClient, setIsClient] = useState(false);
-
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // The header is hidden on small screens and visible on md screens and up.
-  // The login page and home page have their own headers, so this one is hidden there.
-  if (pathname === "/login" || pathname === '/' || !isClient) {
+  // Return null on the server and on paths where the header should be hidden.
+  if (!isClient || pathname === "/login" || pathname === '/') {
     return null;
   }
+  
+  // This part will only render on the client
+  return <ClientHeader />;
+}
+
+function ClientHeader() {
+  const { user, isUserLoading } = useUser();
 
   return (
     <header className="sticky top-0 left-0 right-0 p-2 border-b items-center justify-between bg-gradient-to-r from-cyan-50 via-blue-100 to-purple-200 z-40 no-print animate-gradient-shift bg-[length:200%_auto] flex">

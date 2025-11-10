@@ -1,24 +1,40 @@
 "use client"
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, History, User, Settings, Image as ImageIcon } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
 import { useEditor } from '@/context/editor-context';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function AppSidebar() {
-  const pathname = usePathname();
-  const { setImages } = useEditor();
-  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
-
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
+
+  if (!isClient) {
+    // Return a static sidebar skeleton on the server to avoid hook errors.
+    return (
+      <Sidebar collapsible="offcanvas">
+        <SidebarHeader>
+          <Link href="/" className="font-headline text-3xl">
+            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
+          </Link>
+        </SidebarHeader>
+      </Sidebar>
+    );
+  }
+
+  return <ClientAppSidebar />;
+}
+
+function ClientAppSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { setImages } = useEditor();
+
   const handlePassportClick = (e: React.MouseEvent) => {
       e.preventDefault();
       setImages([]); // Clear any existing images from other flows
@@ -32,19 +48,6 @@ export default function AppSidebar() {
     { href: '/profile', label: 'Profile', icon: User },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
-
-  if (!isClient) {
-    // Return a static sidebar skeleton on the server to avoid hydration errors
-    return (
-      <Sidebar collapsible="offcanvas">
-        <SidebarHeader>
-          <Link href="/" className="font-headline text-3xl">
-            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
-          </Link>
-        </SidebarHeader>
-      </Sidebar>
-    );
-  }
 
   return (
     <Sidebar collapsible="offcanvas">
