@@ -30,6 +30,11 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
   const router = useRouter();
   const { canInstall, install } = usePWAInstall();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const handleInstallClick = () => {
     if (canInstall) {
@@ -77,6 +82,10 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
       description: "Works directly in your browser. Install it as a PWA for an even better offline experience." 
     }
   ];
+
+  if (!isClient) {
+      return null;
+  }
 
   return (
       <>
