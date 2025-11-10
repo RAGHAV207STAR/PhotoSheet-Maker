@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from 'react';
 import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
 import HomepageHeader from '@/components/app/homepage-header';
 import Image from 'next/image';
-import HomepageBodyContent from '@/components/app/homepage-body-content';
 import { useEditor, ImageWithDimensions } from '@/context/editor-context';
 import SmartPhotoPicker from '@/components/app/smart-photo-picker';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -16,6 +15,18 @@ import { useToast } from '@/hooks/use-toast';
 import UploadStep from '@/components/app/steps/upload-step';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const HomepageBodyContent = dynamic(() => import('@/components/app/homepage-body-content'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-4xl space-y-8">
+      <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-72 w-full" />
+    </div>
+  ),
+});
+
 
 const MIN_IMAGES = 2;
 const MAX_IMAGES = 100;

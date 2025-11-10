@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,6 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CollageTeaser } from './collage-teaser';
+import { useState, useEffect } from 'react';
 
 const copyOptions = [1, 2, 4, 6, 8, 10, 12, 20, 30];
 
@@ -30,12 +30,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
   const router = useRouter();
   const { canInstall, install } = usePWAInstall();
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  
   const handleInstallClick = () => {
     if (canInstall) {
       install();
@@ -82,10 +77,6 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
       description: "Works directly in your browser. Install it as a PWA for an even better offline experience." 
     }
   ];
-
-  if (!isClient) {
-      return null;
-  }
 
   return (
       <>
