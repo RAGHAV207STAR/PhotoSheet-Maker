@@ -14,12 +14,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface UploadStepProps {
   onContinue: () => void;
-  isCollageFlow?: boolean;
 }
 
 const MAX_IMAGES = 100;
 
-export default function UploadStep({ onContinue, isCollageFlow = false }: UploadStepProps) {
+export default function UploadStep({ onContinue }: UploadStepProps) {
   const { images, setImages } = useEditor();
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -119,17 +118,12 @@ export default function UploadStep({ onContinue, isCollageFlow = false }: Upload
     setImages(prev => prev.filter((_, i) => i !== index));
   }
 
-  const title = isCollageFlow ? 'Manage Your Collage Photos' : 'Upload Your Photo(s)';
-  const description = isCollageFlow
-    ? `You have selected ${images.length} of ${MAX_IMAGES} photos. Add or remove images before continuing.`
-    : `You can upload multiple photos to appear on the sheet.`;
+  const title = 'Upload Your Photo(s)';
+  const description = `You can upload multiple photos to appear on the sheet.`;
 
 
   return (
-    <div className={cn(
-        "flex flex-col flex-1",
-        isCollageFlow ? "bg-background" : "bg-background"
-    )}>
+    <div className="flex flex-col flex-1 bg-background">
       <main 
           className="w-full max-w-7xl mx-auto flex-grow flex flex-col p-2 sm:p-4 md:p-6 lg:p-8 gap-6 md:gap-8 pb-32 md:pb-28"
           onDrop={handleDrop}
@@ -245,9 +239,9 @@ export default function UploadStep({ onContinue, isCollageFlow = false }: Upload
       <footer className="bg-background/80 backdrop-blur-sm border-t p-4 fixed bottom-0 left-0 right-0 z-10 no-print">
         <div className="w-full max-w-lg mx-auto">
             {images.length > 0 ? (
-                <div className={cn("grid gap-4", isCollageFlow ? "grid-cols-1" : "grid-cols-1")}>
+                <div className="grid grid-cols-1 gap-4">
                     <Button onClick={onContinue} className="w-full flex bg-slate-900 text-white hover:bg-slate-800" size="lg" disabled={images.length === 0}>
-                        {isCollageFlow ? `Continue to Editor` : 'Generate Sheet' }
+                        Generate Sheet
                         <ArrowRight className="ml-2" />
                     </Button>
                 </div>

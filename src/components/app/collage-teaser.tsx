@@ -4,9 +4,9 @@
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Sparkles, LayoutGrid, Heart, Image as ImageIcon } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Image from "next/image";
-import { CollageHeroImage, PlaceHolderImages } from "@/lib/placeholder-images";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const MotionCard = motion.div;
 
@@ -44,13 +44,13 @@ export function CollageTeaser({ onCollageClick }: CollageTeaserProps) {
         >
           <Badge className="mb-4 bg-yellow-400 text-yellow-900 hover:bg-yellow-400/90 font-semibold shadow">
             <Sparkles className="mr-2 h-4 w-4 text-yellow-700" />
-            New Feature
+            Coming Soon
           </Badge>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-800">
             Photo Collage
           </h2>
           <p className="mt-3 text-base md:text-lg text-slate-600">
-            Easily combine your favorite photos into beautiful, unique layouts. Your story, your way.
+            A new way to combine your favorite photos into beautiful, unique layouts. Your story, your way.
           </p>
           <div className="mt-6">
             <Button
@@ -58,7 +58,7 @@ export function CollageTeaser({ onCollageClick }: CollageTeaserProps) {
               onClick={onCollageClick}
               className="bg-slate-800 text-white shadow-md hover:bg-slate-700 transition-all transform hover:scale-105"
             >
-              Create a Collage
+              Learn More
             </Button>
           </div>
         </motion.div>
@@ -71,11 +71,6 @@ export function CollageTeaser({ onCollageClick }: CollageTeaserProps) {
             
             <FloatingCard className="w-48 h-32 rotate-[5deg] top-12 left-1/2 -translate-x-1/2 z-10" delay={0.2}>
                  <Image src={p2.imageUrl} alt={p2.description} fill className="object-cover" data-ai-hint={p2.imageHint}/>
-                 <div className="absolute inset-0 bg-white/20 flex items-center justify-center">
-                    <div className="p-2 rounded-full bg-white/50 backdrop-blur-sm">
-                        <Heart className="w-6 h-6 text-pink-500 fill-current" />
-                    </div>
-                 </div>
             </FloatingCard>
             
             <FloatingCard className="w-32 h-40 rotate-[12deg] bottom-0 right-4" delay={0.4}>

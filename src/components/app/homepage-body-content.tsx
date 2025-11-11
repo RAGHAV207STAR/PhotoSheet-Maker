@@ -54,7 +54,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
     { 
       icon: Gift, 
       title: "Completely Free", 
-      description: "Create unlimited photo sheets and collages without any cost. Our tool is 100% free." 
+      description: "Create unlimited photo sheets without any cost. Our tool is 100% free." 
     },
     { 
       icon: Zap, 
@@ -134,10 +134,10 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                       Your All-in-One Photo Solution
                   </h2>
                   <p className="mt-4 text-lg text-slate-600">
-                      Welcome to Photosheet Maker, the simplest way to prepare photos for any occasion. Create print-ready passport, visa, and ID photos in seconds, or unleash your creativity with our flexible photo collage maker. No software, no sign-ups, no hassle.
+                      Welcome to Photosheet Maker, the simplest way to prepare photos for any occasion. Create print-ready passport, visa, and ID photos in seconds. No software, no sign-ups, no hassle.
                   </p>
                   <p className="mt-2 text-lg text-slate-600">
-                      Whether you need a sheet of official photos or a beautiful collage of your favorite memories, our powerful online tools have you covered. The intuitive interface guides you through the process, from uploading images to customizing the final layout. Get professional results instantly.
+                      Whether you need a sheet of official photos for your documents, our powerful online tools have you covered. The intuitive interface guides you through the process, from uploading images to customizing the final layout. Get professional results instantly.
                   </p>
               </div>
   
@@ -167,30 +167,24 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                   </div>
                   <Accordion type="single" collapsible className="w-full space-y-4">
                        <AccordionItem value="item-1" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6 text-left">How does the collage maker work?</AccordionTrigger>
-                          <AccordionContent className="px-6">
-                          Simply click the "Photo Collage" card, upload multiple images, and then arrange them on the sheet. You can use our automatic layout feature for a quick grid or switch to manual mode to drag, resize, and position each photo exactly how you want it.
-                          </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">How do I make a passport photo online with this tool?</AccordionTrigger>
                           <AccordionContent className="px-6">
                           To make a passport photo online, simply select the number of copies you need from the "Quick Start" section, upload your image on the next screen, and our tool will automatically arrange it on an A4 sheet. You can then download the sheet as a PDF and print it.
                           </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem value="item-3" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
+                      <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">Is this passport size photo maker really free?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          Yes, absolutely! Photosheet Maker is a completely free tool for both passport photos and collages. You can create and download as many photo sheets as you need without any charges.
+                          Yes, absolutely! Photosheet Maker is a completely free tool. You can create and download as many photo sheets as you need without any charges.
                           </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem value="item-4" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
+                      <AccordionItem value="item-3" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">What happens to my uploaded photos?</AccordionTrigger>
                           <AccordionContent className="px-6">
                           Your privacy is important. If you are not logged in, your photos are processed in your browser and are never stored on our servers. If you are logged in, your generated sheets are saved to your private history for easy reprinting, protected by security rules.
                           </AccordionContent>
                       </AccordionItem>
-                       <AccordionItem value="item-5" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
+                       <AccordionItem value="item-4" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">What's the best way to print the photosheet?</AccordionTrigger>
                           <AccordionContent className="px-6">
                           For best results, download the generated PDF and print it on the appropriate paper size (e.g., A4 photo paper). Ensure your printer settings are set to '100%' or 'Actual Size' to avoid scaling issues.
