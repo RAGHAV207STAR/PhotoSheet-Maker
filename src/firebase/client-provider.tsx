@@ -1,91 +1,55 @@
-
 'use client';
 
-import * as React from 'react';
-import { useMemo, type ReactNode } from 'react';
+import React, { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
-import { firebaseConfig } from '@/firebase/config';
+import { initializeFirebase, isFirebaseConfigured } from '@/firebase';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import SessionValidator from '@/components/app/session-validator';
+import { Button } from '@/components/ui/button';
 
-interface FirebaseServices {
-    app: FirebaseApp | null;
-    auth: Auth | null;
-    firestore: Firestore | null;
-    error: Error | null;
+interface FirebaseClientProviderProps {
+  children: ReactNode;
 }
 
-function initializeFirebaseOnClient(): FirebaseServices {
-    // Check if essential config values are present. These are read from public env vars.
-    if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
-        return { 
-            app: null, 
-            auth: null, 
-            firestore: null, 
-            error: new Error("Firebase config is missing or incomplete. Ensure NEXT_PUBLIC_FIREBASE_* environment variables are set.") 
-        };
-    }
+export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+  const isConfigured = isFirebaseConfigured();
 
-    try {
-        const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const firestore = getFirestore(app);
-        return { app, auth, firestore, error: null };
-    } catch (error) {
-        console.error("Failed to initialize Firebase:", error);
-        return { app: null, auth: null, firestore: null, error: error as Error };
-    }
-}
-
-
-export function FirebaseClientProvider({ children }: { children: ReactNode }) {
-  // Use useMemo to ensure Firebase is initialized only once per client session.
   const firebaseServices = useMemo(() => {
-    // This check ensures we only try to initialize on the client side.
-    if (typeof window !== 'undefined') {
-      return initializeFirebaseOnClient();
-    }
-    return { app: null, auth: null, firestore: null, error: null };
-  }, []); 
+    if (!isConfigured) return null;
+    return initializeFirebase();
+  }, [isConfigured]);
 
-  // If there's an initialization error or we're on the server, show a clear message.
-  if (firebaseServices.error || !firebaseServices.app) {
-      // Don't render the error message during server-side rendering or build.
-      if (typeof window === 'undefined') {
-          return <>{children}</>;
-      }
-      return (
-          <div className="w-full h-screen flex items-center justify-center text-center p-4 bg-background">
-              <Card className="max-w-lg p-6 rounded-lg bg-card border border-destructive/50">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                     <AlertTriangle className="h-10 w-10 text-destructive" />
-                     <CardTitle className="text-2xl text-destructive text-left">Firebase Not Configured</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <CardDescription className="text-left">
-                          The application could not connect to Firebase. This is likely because the required
-                          environment variables are not set in your hosting provider (e.g., Vercel).
-                          <br /><br />
-                          Please ensure the environment variables starting with `NEXT_PUBLIC_FIREBASE_` are correctly set in your Vercel project settings and redeploy.
-                      </CardDescription>
-                      <pre className="mt-4 p-4 bg-secondary text-left text-xs rounded-md w-full max-w-lg overflow-x-auto"><code>{firebaseServices.error?.message || "Unknown initialization error."}</code></pre>
-                  </CardContent>
-              </Card>
-          </div>
-      )
+  if (!firebaseServices) {
+    return (
+        <div className="flex flex-col flex-1 items-center justify-center min-h-screen p-4 bg-gradient-to-br from-red-50 to-orange-100">
+            <Card className="w-full max-w-lg text-center bg-white/50 backdrop-blur-lg border border-destructive/20 shadow-lg">
+                <CardHeader className="items-center p-6 sm:p-8">
+                    <div className="p-4 rounded-full bg-gradient-to-br from-red-400 to-orange-500 shadow-[0_4px_20px_rgba(239,68,68,0.3)] mb-4">
+                        <AlertTriangle className="h-12 w-12 text-white" />
+                    </div>
+                    <CardTitle className="text-3xl font-extrabold tracking-tight text-destructive">
+                        Firebase Not Configured
+                    </CardTitle>
+                    <CardDescription className="text-foreground/80 text-base mt-2">
+                        Your Firebase environment variables are missing. Please provide them to continue. This is a common issue that can be resolved by setting up your Firebase project.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 sm:p-8 pt-0">
+                    <Button onClick={() => window.location.reload()} size="lg" className="w-full">
+                        Refresh Application
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    )
   }
 
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices.app}
-      auth={firebaseServices.auth!}
-      firestore={firebaseServices.firestore!}
+      firebaseApp={firebaseServices.firebaseApp}
+      auth={firebaseServices.auth}
+      firestore={firebaseServices.firestore}
     >
-      <SessionValidator />
       {children}
     </FirebaseProvider>
   );

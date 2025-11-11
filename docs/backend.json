@@ -1,74 +1,150 @@
-
 {
   "entities": {
-    "UserProfile": {
-      "title": "User Profile",
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
       "type": "object",
-      "description": "Represents a user's profile information.",
+      "description": "Represents a user of the PhotoSheet app.",
       "properties": {
-        "displayName": {
+        "id": {
           "type": "string",
-          "description": "The user's display name."
+          "description": "Unique identifier for the User entity."
         },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "photoURL": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the user's profile picture."
-        },
-        "lastSeen": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the user was last active."
+          "description": "User's email address.",
+          "format": "email"
         }
       },
-      "required": ["email"]
+      "required": [
+        "id",
+        "email"
+      ]
     },
-    "Photosheet": {
-      "title": "Photosheet",
+    "PhotoSheet": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PhotoSheet",
       "type": "object",
-      "description": "Represents a generated photosheet record.",
+      "description": "Represents a PhotoSheet created by a user, including settings and the processed output.",
       "properties": {
-        "imageUrls": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "uri"
-          },
-          "description": "The data URIs of the uploaded images."
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PhotoSheet entity."
         },
-        "copies": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N PhotoSheet)"
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL of the uploaded photo.",
+          "format": "uri"
+        },
+        "photoWidthCm": {
           "type": "number",
-          "description": "Number of photos on the sheet."
+          "description": "Width of the photo in centimeters."
+        },
+        "photoHeightCm": {
+          "type": "number",
+          "description": "Height of the photo in centimeters."
+        },
+        "marginTopCm": {
+          "type": "number",
+          "description": "Margin at the top of the sheet in centimeters."
+        },
+        "marginBottomCm": {
+          "type": "number",
+          "description": "Margin at the bottom of the sheet in centimeters."
+        },
+        "marginLeftCm": {
+          "type": "number",
+          "description": "Margin on the left side of the sheet in centimeters."
+        },
+        "marginRightCm": {
+          "type": "number",
+          "description": "Margin on the right side of the sheet in centimeters."
+        },
+        "horizontalSpacingCm": {
+          "type": "number",
+          "description": "Horizontal spacing between photos in centimeters."
+        },
+        "verticalSpacingCm": {
+          "type": "number",
+          "description": "Vertical spacing between photos in centimeters."
+        },
+        "a4SheetPreviewUrl": {
+          "type": "string",
+          "description": "URL of the generated A4 sheet preview.",
+          "format": "uri"
         },
         "createdAt": {
           "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the photosheet was created."
+          "description": "Timestamp when the PhotoSheet was created.",
+          "format": "date-time"
         }
       },
-      "required": ["imageUrls", "copies", "createdAt"]
+      "required": [
+        "id",
+        "userId",
+        "photoUrl",
+        "photoWidthCm",
+        "photoHeightCm",
+        "marginTopCm",
+        "marginBottomCm",
+        "marginLeftCm",
+        "marginRightCm",
+        "horizontalSpacingCm",
+        "verticalSpacingCm",
+        "a4SheetPreviewUrl",
+        "createdAt"
+      ]
     }
   },
   "auth": {
-    "providers": ["password", "google.com"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/UserProfile"
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Each user document is identified by their unique Firebase Auth ID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Auth ID of the user."
+            }
+          ]
+        }
       },
-      "description": "User profile documents, keyed by user ID."
-    },
-    "/users/{userId}/photosheets/{photosheetId}": {
-        "schema": {
-            "$ref": "#/entities/Photosheet"
-        },
-        "description": "Subcollection for storing a user's generated photosheets."
-    }
+      {
+        "path": "/users/{userId}/photoSheets/{photoSheetId}",
+        "definition": {
+          "entityName": "PhotoSheet",
+          "schema": {
+            "$ref": "#/backend/entities/PhotoSheet"
+          },
+          "description": "Stores PhotoSheets created by a user. Uses path-based ownership; a PhotoSheet is owned by the user at the userId path segment. The userId is required to match request.auth.uid for create, update, and delete operations.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Auth ID of the user who owns the PhotoSheet."
+            },
+            {
+              "name": "photoSheetId",
+              "description": "The unique ID of the PhotoSheet."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to ensure secure and scalable data management for the PhotoSheet app. It leverages path-based ownership for PhotoSheet entities, aligning with Firebase best practices for security and efficiency. Specifically, PhotoSheets are stored under `/users/{userId}/photoSheets/{photoSheetId}`, which provides clear ownership and simplifies security rules. This design prioritizes **Authorization Independence** by avoiding `get()` calls in the security rules. PhotoSheets inherit authorization context from their parent user. Furthermore, it supports the required **QAPs** (Rules Are Not Filters) by structuring data such that listing operations are naturally scoped to the user's own data, preventing unauthorized access. This structure facilitates straightforward, robust security rules and ensures clear authorization intent, which is crucial for debuggability. The use of path-based ownership ensures that each PhotoSheet is directly associated with its owner, making it easy to implement security rules based on the `request.auth.uid`."
   }
 }
