@@ -75,6 +75,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
       }
       
       const photosheetData = {
+        userId: user.uid, // Add userId for security rule validation
         thumbnailUrl: firstImageSrc,
         copies: copies,
         createdAt: serverTimestamp(),
