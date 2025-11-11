@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useEditor } from '@/context/editor-context';
@@ -62,20 +61,29 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
   useEffect(() => {
     // Sync local state when global state changes (e.g., on init or unit change)
     const displayWidth = unit === 'cm' ? photoWidthCm : photoWidthCm * CM_TO_IN;
-    const displayHeight = unit === 'cm' ? photoHeightCm : photoHeightCm * CM_TO_IN;
+    const displayHeight = unit === 'cm' ? photoHeightCm : photoHeightCm * IN_TO_CM;
     setLocalWidth(displayWidth.toFixed(2));
     setLocalHeight(displayHeight.toFixed(2));
   }, [photoWidthCm, photoHeightCm, unit]);
 
   const saveToHistory = () => {
     if (user && firestore && images.length > 0) {
+      const firstImageSrc = images[0]?.src;
+      if (!firstImageSrc) {
+        console.warn("Could not save to history: no source image available.");
+        return;
+      }
+      
       const photosheetData = {
-        imageUrls: images.map(i => i.src), // Save all uploaded images
-        copies: copies, // This should just be the multiplier
+        thumbnailUrl: firstImageSrc,
+        copies: copies,
         createdAt: serverTimestamp(),
       };
+      
       const historyCollection = collection(firestore, 'users', user.uid, 'photosheets');
-      addDoc(historyCollection, photosheetData);
+      addDoc(historyCollection, photosheetData).catch(error => {
+          console.error("Failed to save history:", error);
+      });
     }
   }
 

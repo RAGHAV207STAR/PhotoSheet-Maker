@@ -25,7 +25,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Photosheet {
   id: string;
-  imageUrls: string[];
+  thumbnailUrl?: string;
   copies: number;
   createdAt: Timestamp | null;
 }
@@ -49,7 +49,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     const isMobile = useIsMobile();
 
     const date = sheet.createdAt ? sheet.createdAt.toDate() : new Date();
-    const thumbnailUrl = sheet.imageUrls?.[0] || '';
+    const thumbnailUrl = sheet.thumbnailUrl || '';
 
     const confirmDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -62,7 +62,10 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
         pressTimer.current = setTimeout(() => {
             didLongPress.current = true;
             if (isMobile) {
-                setIsPreviewOpen(true);
+                if (!selectionMode) {
+                    setSelectionMode(true);
+                    onToggleSelect(sheet.id, false);
+                }
             } else {
                  if (!selectionMode) {
                     setSelectionMode(true);
@@ -165,7 +168,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
                         <div className="flex justify-between items-start">
                             <div className="flex-grow">
                                 <p className="font-semibold">{format(date, "MMMM d, yyyy")}</p>
-                                <p className="text-sm text-muted-foreground">{sheet.copies * (sheet.imageUrls?.length || 1)} copies total</p>
+                                <p className="text-sm text-muted-foreground">{sheet.copies} copies total</p>
                                 <p className="text-xs text-muted-foreground mt-2">{format(date, "'at' h:mm a")}</p>
                             </div>
                             {!selectionMode && (
