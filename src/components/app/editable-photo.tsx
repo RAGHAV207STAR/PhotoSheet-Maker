@@ -48,8 +48,10 @@ export default function EditablePhoto({ photo, isFreeform = false }: EditablePho
   
   const isSelected = selectedPhotoId === photo.id;
   const isCropping = activeCropPhotoId === photo.id;
+  const combinedRef = useRef<HTMLDivElement>(null);
 
-  const [{ isDragging }, drag, preview] = useDrag({
+
+  const [{ isDragging }, drag] = useDrag({
     type: 'PHOTO_COLLAGE',
     item: { id: photo.id, type: 'PHOTO_COLLAGE' },
     collect: (monitor) => ({
@@ -70,11 +72,9 @@ export default function EditablePhoto({ photo, isFreeform = false }: EditablePho
         canDrop: monitor.canDrop() && !photo.isOverlay,
     }),
   });
-
-  const combineRefs = (el: HTMLDivElement) => {
-    drag(el);
-    drop(el);
-  };
+  
+  // Attach both drag and drop refs to the same node
+  drag(drop(combinedRef));
   
   useEffect(() => {
     setInternalScale(photo.scale);
@@ -194,6 +194,7 @@ export default function EditablePhoto({ photo, isFreeform = false }: EditablePho
   const photoContent = (
     <div
       id={`photo-div-${photo.id}`}
+      ref={combinedRef}
       className={cn(
         "relative w-full h-full overflow-hidden", 
         isCropping ? "cursor-move" : "cursor-pointer",
@@ -211,7 +212,6 @@ export default function EditablePhoto({ photo, isFreeform = false }: EditablePho
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove as any}
       onTouchEnd={handleTouchEnd}
-      ref={!isFreeform ? combineRefs : null}
     >
       {photo.src ? (
         <motion.div

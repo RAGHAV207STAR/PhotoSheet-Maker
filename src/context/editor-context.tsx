@@ -262,22 +262,22 @@ function getTwoPhotoLayout(layoutType: CollageLayoutType, images: ImageWithDimen
              return [
                 { id: 'p1', src: img1.src, x: 10.5, y: 13, width: 79, height: 35.5, ...defaultPhotoProps },
                 { id: 'p2', src: img2.src, x: 10.5, y: 51.5, width: 79, height: 35.5, ...defaultPhotoProps },
-                { id: 'p3', src: '/assets/film-overlay.png', x: 0, y: 0, width: 100, height: 100, isOverlay: true, ...defaultPhotoProps, zIndex: 10 },
+                { id: 'p3', src: '/film-overlay.png', x: 0, y: 0, width: 100, height: 100, isOverlay: true, ...defaultPhotoProps, zIndex: 10 },
              ];
         case 'two-text-heart':
             return [
                 { id: 'p1', src: img1.src, x: 5, y: 5, width: 90, height: 90, ...defaultPhotoProps }, 
-                { id: 'p2', src: '/assets/heart-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
+                { id: 'p2', src: '/heart-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
             ];
         case 'two-text-see':
              return [
                 { id: 'p1', src: img1.src, x: 5, y: 5, width: 90, height: 90, ...defaultPhotoProps }, 
-                { id: 'p2', src: '/assets/see-love-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
+                { id: 'p2', src: '/see-love-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
             ];
         case 'two-love-text':
              return [
                 { id: 'p1', src: img1.src, x: 5, y: 5, width: 90, height: 90, ...defaultPhotoProps }, 
-                { id: 'p2', src: '/assets/love-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
+                { id: 'p2', src: '/love-text.png', x: 5, y: 5, width: 90, height: 90, isOverlay: true, ...defaultPhotoProps, zIndex: 10 }
             ];
         default:
             return [];
