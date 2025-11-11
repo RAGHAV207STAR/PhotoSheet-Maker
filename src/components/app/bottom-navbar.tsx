@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -23,8 +24,8 @@ export default function BottomNavbar() {
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
-  // Hide navbar on login, editor, and settings pages
-  const hiddenPaths = ['/login', '/editor', '/settings'];
+  // Hide navbar on login and editor pages
+  const hiddenPaths = ['/login', '/editor'];
   if (hiddenPaths.some(path => pathname.startsWith(path))) {
     return null;
   }

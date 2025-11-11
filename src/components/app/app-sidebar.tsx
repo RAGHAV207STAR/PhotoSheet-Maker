@@ -1,8 +1,9 @@
+
 "use client"
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, History, User, Settings, Image as ImageIcon } from 'lucide-react';
+import { Home, History, User, Image as ImageIcon } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useEditor } from '@/context/editor-context';
 import { useState, useEffect } from 'react';
@@ -46,7 +47,6 @@ function ClientAppSidebar() {
     { href: '/editor', label: 'Passport', icon: ImageIcon, onClick: handlePassportClick },
     { href: '/history', label: 'History', icon: History },
     { href: '/profile', label: 'Profile', icon: User },
-    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (

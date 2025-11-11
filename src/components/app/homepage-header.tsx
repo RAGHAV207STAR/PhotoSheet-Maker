@@ -1,10 +1,11 @@
+
 "use client";
 
 import Link from 'next/link';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { User, Settings, MoreVertical, History } from 'lucide-react';
+import { User, MoreVertical, History } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,12 +100,6 @@ function ClientHomepageHeader() {
                       <span>History</span>
                       </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                      <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                      </Link>
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -123,3 +118,5 @@ function ClientHomepageHeader() {
     </>
   );
 }
+
+    
