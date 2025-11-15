@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig, isFirebaseConfigured } from '@/firebase/config';
