@@ -1,53 +1,55 @@
-
 /**
- * @description This ruleset enforces a user-ownership model for profiles and photosheets.
- *   A user can only read, update, or delete their own profile.
- *   A user can only read, write, and list their own photosheets.
- *   Listing user documents is explicitly denied to protect user privacy.
- * @dataStructure
- *   /users/{userId} (UserProfile):  User profile data.
- *   /users/{userId}/photosheets/{photosheetId} (Photosheet): Photosheets created by the user.
- * @keySecurityDecisions
- *   - User listing is not allowed.
- *   - All write operations require authentication.
- *   - The rules for the photosheets subcollection grant list, read, and write access to the owner.
- * @denormalizationForAuthorization
- *   The rules rely on path-based authorization. The `request.auth.uid` is matched against the `userId` path segment to ensure ownership.
+ * @fileoverview Firestore Security Rules for PhotoSheet App
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model.  Each user can only
+ * access their own profile and the PhotoSheets they have created.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, with userId matching the Firebase Auth UID.
+ * - /users/{userId}/photosheets/{photosheetId}: Stores PhotoSheets created by a user.
+ *
+ * Key Security Decisions:
+ * - User listing is disabled to protect user privacy.
+ * - Only authenticated users can access data.
+ * - The `userId` in a photosheet document must match the user creating it.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
+    /**
+     * @description Checks if the request is made by an authenticated user.
+     * @return {boolean} True if the user is signed in, false otherwise.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * @description Checks if the authenticated user ID matches the provided user ID.
+     * @param {string} userId The user ID to compare against the authenticated user's ID.
+     * @return {boolean} True if the user is the owner, false otherwise.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
-     * @description Controls access to user profiles and their subcollections.
-     * @path /users/{userId}
+     * @description Rules for user profiles.
      */
     match /users/{userId} {
-      /**
-       * @description Allows a user to manage their own profile.
-       * @allow (read, update, delete, create): Authenticated user with matching UID can manage their profile.
-       * @deny (list): Listing all user profiles is denied for privacy.
-       */
-      allow read, update, delete: if isOwner(userId);
+      allow get, update, delete: if isOwner(userId);
       allow create: if isOwner(userId);
       allow list: if false;
 
       /**
-       * @description Controls access to the photosheets subcollection for a user.
-       * @path /users/{userId}/photosheets/{photosheetId}
-       * @allow (list, read, write): Authenticated user with matching UID can manage their photosheets.
+       * @description Rules for PhotoSheets under a user profile.
        */
-      match /photosheets/{photosheetId} {
-        allow list, read, write: if isOwner(userId);
+      match /photosheets/{photoSheetId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update, delete: if isOwner(userId);
       }
     }
   }
