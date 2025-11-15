@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
 import dynamic from 'next/dynamic';
 
@@ -37,27 +37,21 @@ const LoginPageContent = () => {
   const handleSuccessfulLogin = async (user: User) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', user.uid);
-    
-    try {
-      await setDoc(userDocRef, {
+    const userData = {
         displayName: user.displayName,
         email: user.email,
         photoURL: user.photoURL,
         lastSeen: serverTimestamp(),
-      }, { merge: true });
-      
-      toast({ title: 'Success', description: 'Logged in successfully.' });
-      router.push('/');
-    } catch(e: any) {
-       toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: e.message || "Could not save user data.",
-      });
-    } finally {
-      setLoading(false);
-      setIsAuthLoading(false);
-    }
+    };
+    
+    // Use non-blocking write with error handling
+    setDocumentNonBlocking(userDocRef, userData, { merge: true });
+    
+    toast({ title: 'Success', description: 'Logged in successfully.' });
+    router.push('/');
+
+    setLoading(false);
+    setIsAuthLoading(false);
   };
 
 
