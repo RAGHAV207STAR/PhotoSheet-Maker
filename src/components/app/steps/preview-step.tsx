@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 interface PreviewStepProps {
@@ -97,98 +97,78 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         });
     });
   }
+  
+  const generateCleanedSheet = async (sheetIndex: number): Promise<HTMLElement | null> => {
+    // We need to operate on the DOM for html2canvas
+    const originalContainer = document.getElementById('sheet-container');
+    if (!originalContainer) return null;
 
-  const generateSheetImage = async (sheetIndex: number): Promise<string | null> => {
-    const sheetData = photos[sheetIndex];
-    if (!sheetData) return null;
+    // We can't use the ref here as we might not be on the current sheet
+    const originalSheet = originalContainer.querySelector(`#sheet-${sheetIndex}`);
+    if (!originalSheet) return null;
 
-    const canvas = document.createElement('canvas');
-    // A4 at 300 DPI
-    const a4_width_px = 2480;
-    const a4_height_px = 3508;
-    canvas.width = a4_width_px;
-    canvas.height = a4_height_px;
-    const ctx = canvas.getContext('2d');
+    const clone = originalSheet.cloneNode(true) as HTMLElement;
 
-    if (!ctx) return null;
-    
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const imageLoadPromises: Promise<void>[] = [];
-
-    // Filter out empty placeholders before processing
-    const filledPhotos = sheetData.filter(photo => photo.imageSrc);
-
-    filledPhotos.forEach(photo => {
-        const promise = new Promise<void>((resolve, reject) => {
-            const imageToDraw = new Image();
-            imageToDraw.crossOrigin = 'anonymous';
-            imageToDraw.src = photo.imageSrc;
-            imageToDraw.onload = () => {
-                const left = (photo.x / 100) * a4_width_px;
-                const top = (photo.y / 100) * a4_height_px;
-                const width = (photo.width / 100) * a4_width_px;
-                const height = (photo.height / 100) * a4_height_px;
-                
-                ctx.drawImage(imageToDraw, left, top, width, height);
-
-                if (borderWidth > 0) {
-                    ctx.strokeStyle = '#000000';
-                    // Scale borderWidth based on 300 DPI canvas vs screen size.
-                    const dpiScalingFactor = a4_width_px / (sheetContainerRef.current?.offsetWidth || 210 * 3.78); // Approx conversion mm to px
-                    ctx.lineWidth = borderWidth * dpiScalingFactor;
-                    ctx.strokeRect(left, top, width, height);
-                }
-                resolve();
-            };
-            imageToDraw.onerror = reject;
-        });
-        imageLoadPromises.push(promise);
+    // Clean the cloned node
+    clone.querySelectorAll('.photo-item').forEach(node => {
+        const img = node.querySelector("img");
+        // Remove the node if it's a placeholder (no img src)
+        if (!img || !img.src || img.src.trim() === "") {
+            node.remove();
+        } else {
+            // Otherwise, remove border and background for clean export
+            (node as HTMLElement).style.border = "none";
+            (node as HTMLElement).style.background = "none";
+        }
     });
 
-    await Promise.all(imageLoadPromises);
+    // Remove placeholder icons if any exist in the structure
+    clone.querySelectorAll(".placeholder-icon").forEach(icon => icon.remove());
     
-    // Return high-quality PNG
-    return canvas.toDataURL('image/png', 1.0);
+    // The clone is now ready for rendering
+    return clone;
   };
 
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPng = async () => {
     if (photos.length === 0 || images.length === 0) {
       toast({ title: 'Sheet not ready', description: 'Please add photos and configure your sheet.', variant: 'destructive' });
       return;
     }
 
     setIsProcessing(true);
-    toast({ title: 'Generating PDF...', description: 'This may take a moment for all pages.' });
+    toast({ title: 'Generating Image...', description: 'This may take a moment.' });
     
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
     try {
-        for (let i = 0; i < photos.length; i++) {
-            const imgData = await generateSheetImage(i);
-            if (imgData) {
-                if (i > 0) {
-                    pdf.addPage();
-                }
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
-            }
-        }
+        const cleanedSheet = await generateCleanedSheet(currentSheet);
+        if (!cleanedSheet) throw new Error("Could not generate cleaned sheet element.");
+        
+        // Temporarily append to body to ensure it's rendered for html2canvas
+        document.body.appendChild(cleanedSheet);
 
-        pdf.save('photosheet.pdf');
+        const canvas = await html2canvas(cleanedSheet, {
+            backgroundColor: '#ffffff', // Ensure background is white
+            scale: 3, // For higher resolution (approx 300 DPI)
+            useCORS: true, // Important for external images
+        });
+        
+        document.body.removeChild(cleanedSheet);
+
+        const link = document.createElement("a");
+        link.download = `photosheet-page-${currentSheet + 1}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
 
         toast({
             title: "Download Complete",
             description: "Your photo sheet has been downloaded successfully.",
         });
         saveToHistory();
+
     } catch (error) {
-        console.error("PDF Generation Error:", error);
+        console.error("PNG Generation Error:", error);
         toast({
-            title: 'PDF Generation Failed',
+            title: 'Image Generation Failed',
             description: 'An unexpected error occurred. Please try again.',
             variant: 'destructive',
         });
@@ -197,57 +177,13 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
   };
   
-  const handlePrint = async () => {
-    if (photos.length === 0 || images.length === 0) {
+  const handlePrint = () => {
+     if (photos.length === 0 || images.length === 0) {
       toast({ title: 'Sheet not generated', description: 'Please upload an image first.', variant: 'destructive' });
       return;
     }
-  
-    setIsProcessing(true);
-    toast({
-      title: 'Preparing for Print...',
-      description: 'Generating high-resolution images for printing.',
-    });
-  
-    const printContainer = document.createElement('div');
-    printContainer.id = 'print-wrapper';
-    
-    try {
-        for (let i = 0; i < photos.length; i++) {
-            const imgData = await generateSheetImage(i);
-            if (imgData) {
-                const imgElement = document.createElement('img');
-                imgElement.src = imgData;
-                imgElement.style.width = '210mm';
-                imgElement.style.height = '297mm';
-                imgElement.classList.add('printable-area');
-                printContainer.appendChild(imgElement);
-            }
-        }
-
-        document.body.appendChild(printContainer);
-        
-        saveToHistory();
-        
-        // Allow images to render before printing
-        setTimeout(() => {
-            window.print();
-            document.body.removeChild(printContainer);
-            setIsProcessing(false);
-        }, 500);
-
-    } catch (error) {
-        console.error("Print preparation error:", error);
-        toast({
-            title: "Print failed",
-            description: "Could not prepare the document for printing.",
-            variant: "destructive"
-        });
-        if(printContainer.parentElement) {
-            document.body.removeChild(printContainer);
-        }
-        setIsProcessing(false);
-    }
+    saveToHistory();
+    window.print();
   };
 
   const handleReset = () => {
@@ -380,9 +316,9 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
 
               <Separator />
                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="default" size="lg" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPdf}>
+                  <Button variant="default" size="lg" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPng}>
                       {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                      {isProcessing ? 'Generating...' : 'Download PDF'}
+                      {isProcessing ? 'Generating...' : 'Download PNG'}
                   </Button>
 
                   <Button variant="secondary" onClick={handlePrint} disabled={images.length === 0 || isProcessing} size="lg">

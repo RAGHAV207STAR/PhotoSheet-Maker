@@ -173,9 +173,8 @@
     border-style: solid !important;
   }
   /* Hide placeholder borders and icons during print */
-  .placeholder-wrapper {
-    border: none !important;
-    background-color: transparent !important;
+  .photo-item:not(:has(img[src])) {
+    display: none !important;
   }
   .placeholder-icon {
     display: none !important;
@@ -232,3 +231,5 @@
 .animate-\[shine_3s_infinite\] {
   animation: shine 3s infinite linear;
 }
+
+    
