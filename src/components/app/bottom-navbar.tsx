@@ -2,25 +2,16 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Home, User, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEditor } from '@/context/editor-context';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { setImages } = useEditor();
-
-  const handlePassportClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setImages([]); // Clear any existing images from other flows
-    router.push('/editor');
-  };
 
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/editor', label: 'Passport', icon: ImageIcon, onClick: handlePassportClick },
+    { href: '/editor', label: 'Passport', icon: ImageIcon },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
@@ -40,7 +31,6 @@ export default function BottomNavbar() {
             <Link
               href={item.href}
               key={item.href}
-              onClick={item.onClick}
               className={cn(
                 'flex flex-col items-center justify-center text-sm w-full h-full transition-all duration-300 rounded-lg',
                 isActive 

@@ -2,10 +2,9 @@
 "use client"
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Home, History, User, Image as ImageIcon } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { useEditor } from '@/context/editor-context';
 import { useState, useEffect } from 'react';
 
 export default function AppSidebar() {
@@ -33,18 +32,10 @@ export default function AppSidebar() {
 
 function ClientAppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { setImages } = useEditor();
-
-  const handlePassportClick = (e: React.MouseEvent) => {
-      e.preventDefault();
-      setImages([]); // Clear any existing images from other flows
-      router.push('/editor');
-  }
 
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/editor', label: 'Passport', icon: ImageIcon, onClick: handlePassportClick },
+    { href: '/editor', label: 'Passport', icon: ImageIcon },
     { href: '/history', label: 'History', icon: History },
     { href: '/profile', label: 'Profile', icon: User },
   ];
@@ -63,7 +54,7 @@ function ClientAppSidebar() {
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={isActive} tooltip={{children: item.label}}>
-                  <Link href={item.href} onClick={item.onClick}>
+                  <Link href={item.href}>
                     <item.icon />
                     <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                   </Link>

@@ -10,6 +10,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { GoogleSpinner } from '../ui/google-spinner';
 
+
 interface Photosheet {
   id: string;
   thumbnailUrl: string; 
@@ -34,32 +35,42 @@ export default function EditorWizard() {
   const { data: photosheet, isLoading } = useDoc<Photosheet>(photosheetDocRef);
 
   useEffect(() => {
+    // This effect runs when query params change, determining the editor's initial state.
     if (historyId) {
-        if (photosheet) {
-            resetEditor();
-            if (photosheet.thumbnailUrl) {
-                setImages([{ src: photosheet.thumbnailUrl, width: 500, height: 500 }]);
-            }
-            if (photosheet.copies) {
-                setCopies(photosheet.copies);
-            }
-            setStep(2);
-        }
-        return;
+      // Loading from history. The `isLoading` and `photosheet` state will handle this.
+      return;
     }
     
-    // Default case: New passport flow.
-    resetEditor();
-    if (copiesParam) {
-        const parsedCopies = parseInt(copiesParam, 10);
-        if (!isNaN(parsedCopies)) {
-            setCopies(parsedCopies);
-        }
+    // This is a new session (not from history), so reset the editor state.
+    if (!searchParams.toString()) {
+        resetEditor();
     }
+    
+    if (copiesParam) {
+      const parsedCopies = parseInt(copiesParam, 10);
+      if (!isNaN(parsedCopies)) {
+        setCopies(parsedCopies);
+      }
+    }
+    
     setStep(1);
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyId, photosheet, copiesParam]);
+  }, [historyId, copiesParam]); // Only re-run if these params change
+
+  useEffect(() => {
+    // This effect handles loading a photosheet from history once the data is fetched.
+    if (historyId && photosheet) {
+        resetEditor();
+        if (photosheet.thumbnailUrl) {
+            setImages([{ src: photosheet.thumbnailUrl, width: 500, height: 500 }]);
+        }
+        if (photosheet.copies) {
+            setCopies(photosheet.copies);
+        }
+        setStep(2);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyId, photosheet]); // Runs when photosheet data arrives
 
 
   const nextStep = () => {
