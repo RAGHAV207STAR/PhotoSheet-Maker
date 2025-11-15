@@ -33,6 +33,10 @@
       "type": "object",
       "description": "Represents a generated photosheet record.",
       "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this photosheet."
+        },
         "thumbnailUrl": {
           "type": "string",
           "format": "uri",
@@ -48,7 +52,7 @@
           "description": "The timestamp when the photosheet was created."
         }
       },
-      "required": ["copies", "createdAt"]
+      "required": ["userId", "copies", "createdAt"]
     }
   },
   "auth": {
