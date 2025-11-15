@@ -117,35 +117,39 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
 
     const imageLoadPromises: Promise<void>[] = [];
 
-    sheetData.forEach(photo => {
-        if (photo.imageSrc) { // Only process photos with an image
-            const promise = new Promise<void>((resolve, reject) => {
-                const imageToDraw = new Image();
-                imageToDraw.crossOrigin = 'anonymous';
-                imageToDraw.src = photo.imageSrc;
-                imageToDraw.onload = () => {
-                    const left = (photo.x / 100) * a4_width_px;
-                    const top = (photo.y / 100) * a4_height_px;
-                    const width = (photo.width / 100) * a4_width_px;
-                    const height = (photo.height / 100) * a4_height_px;
-                    
-                    ctx.drawImage(imageToDraw, left, top, width, height);
+    // Filter out empty placeholders before processing
+    const filledPhotos = sheetData.filter(photo => photo.imageSrc);
 
-                    if (borderWidth > 0) {
-                        ctx.strokeStyle = '#000000';
-                        ctx.lineWidth = borderWidth * (a4_width_px / (sheetContainerRef.current?.offsetWidth || a4_width_px));
-                        ctx.strokeRect(left, top, width, height);
-                    }
-                    resolve();
-                };
-                imageToDraw.onerror = reject;
-            });
-            imageLoadPromises.push(promise);
-        }
+    filledPhotos.forEach(photo => {
+        const promise = new Promise<void>((resolve, reject) => {
+            const imageToDraw = new Image();
+            imageToDraw.crossOrigin = 'anonymous';
+            imageToDraw.src = photo.imageSrc;
+            imageToDraw.onload = () => {
+                const left = (photo.x / 100) * a4_width_px;
+                const top = (photo.y / 100) * a4_height_px;
+                const width = (photo.width / 100) * a4_width_px;
+                const height = (photo.height / 100) * a4_height_px;
+                
+                ctx.drawImage(imageToDraw, left, top, width, height);
+
+                if (borderWidth > 0) {
+                    ctx.strokeStyle = '#000000';
+                    // Scale borderWidth based on 300 DPI canvas vs screen size.
+                    const dpiScalingFactor = a4_width_px / (sheetContainerRef.current?.offsetWidth || 210 * 3.78); // Approx conversion mm to px
+                    ctx.lineWidth = borderWidth * dpiScalingFactor;
+                    ctx.strokeRect(left, top, width, height);
+                }
+                resolve();
+            };
+            imageToDraw.onerror = reject;
+        });
+        imageLoadPromises.push(promise);
     });
 
     await Promise.all(imageLoadPromises);
     
+    // Return high-quality PNG
     return canvas.toDataURL('image/png', 1.0);
   };
 
@@ -170,7 +174,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                 if (i > 0) {
                     pdf.addPage();
                 }
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
             }
         }
 
@@ -402,3 +406,5 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </div>
   );
 }
+
+    
