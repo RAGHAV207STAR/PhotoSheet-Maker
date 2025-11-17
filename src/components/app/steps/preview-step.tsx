@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 
@@ -103,35 +102,39 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     });
   }
   
+  const generateCanvas = async (sheetIndex: number): Promise<HTMLCanvasElement> => {
+    const { default: html2canvas } = await import('html2canvas');
+    const sheetElement = sheetPreviewRef.current?.querySelector(`#sheet-${sheetIndex}`) as HTMLElement;
+    if (!sheetElement) {
+      throw new Error(`Sheet element with index ${sheetIndex} not found.`);
+    }
+
+    const canvas = await html2canvas(sheetElement, {
+        scale: 4, // SUPER HIGH RESOLUTION
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: null,
+        imageTimeout: 0,
+        onclone: (document) => {
+          // Remove placeholder elements from the cloned document before capture
+          document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+        }
+    });
+    return canvas;
+  }
+  
   const handleDownloadPng = async () => {
     if (photos.length === 0 || images.length === 0) {
       toast({ title: 'Sheet not ready', description: 'Please add photos and configure your sheet.', variant: 'destructive' });
       return;
     }
 
-    const sheetElement = sheetPreviewRef.current?.querySelector(`#sheet-${currentSheet}`) as HTMLElement;
-    if (!sheetElement) {
-       toast({ title: 'Preview element not found', variant: 'destructive' });
-       return;
-    }
-
     setIsProcessing(true);
     toast({ title: 'Generating Image...', description: 'This may take a moment for high quality export.' });
     
     try {
-        const canvas = await html2canvas(sheetElement, {
-            scale: 4, // SUPER HIGH RESOLUTION
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
-            backgroundColor: null,
-            imageTimeout: 0,
-            onclone: (document) => {
-              // Remove placeholder elements from the cloned document before capture
-              document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
-            }
-        });
-
+        const canvas = await generateCanvas(currentSheet);
         const dataUrl = canvas.toDataURL('image/png', 1.0);
 
         const link = document.createElement("a");
@@ -146,10 +149,10 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         saveToHistory();
 
     } catch (error) {
-        console.error(error)
+        console.error("PNG Generation Error:", error);
         toast({
             title: 'Image Generation Failed',
-            description: 'An unexpected error occurred. Please try again.',
+            description: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
             variant: 'destructive',
         });
     } finally {
@@ -168,37 +171,19 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
 
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const a4WidthMm = 210;
-      const a4HeightMm = 297;
       
       for (let i = 0; i < photos.length; i++) {
-        const sheetElementToCapture = sheetPreviewRef.current?.querySelector(`#sheet-${i}`) as HTMLElement | null;
-        if (!sheetElementToCapture) continue;
-
         if (i > 0) {
           pdf.addPage();
         }
 
-        const canvas = await html2canvas(sheetElementToCapture, {
-            scale: 4, // VERY IMPORTANT for high DPI
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
-            backgroundColor: null,
-            imageTimeout: 0,
-            onclone: (document) => {
-              // Remove placeholder elements from the cloned document before capture
-              document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
-            }
-        });
-        
+        const canvas = await generateCanvas(i);
         const imgData = canvas.toDataURL('image/png', 1.0);
         
-        // A4 aspect ratio
-        const pdfWidth = a4WidthMm;
-        const pdfHeight = a4HeightMm;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
         
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       }
       
       pdf.save('photosheet.pdf');
@@ -210,10 +195,10 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
       saveToHistory();
 
     } catch (error) {
-      console.error(error);
+      console.error("PDF Generation Error:", error);
       toast({
         title: 'PDF Generation Failed',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -230,6 +215,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     const printWrapper = document.getElementById('print-wrapper') || document.createElement('div');
     if (!document.getElementById('print-wrapper')) {
         printWrapper.id = 'print-wrapper';
+        printWrapper.style.display = 'none';
         document.body.appendChild(printWrapper);
     }
     
@@ -442,3 +428,5 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </div>
   );
 }
+
+    
