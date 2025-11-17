@@ -15,19 +15,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toPng } from 'html-to-image';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 
 interface PreviewStepProps {
   onBack: () => void;
 }
-
-const imageFilter = (node: HTMLElement) => {
-    // Only include the node if it's not a placeholder
-    const isPlaceholder = node.classList?.contains('placeholder-wrapper') || node.classList?.contains('placeholder-icon');
-    return !isPlaceholder;
-};
 
 export default function PreviewStep({ onBack }: PreviewStepProps) {
   const { 
@@ -121,15 +116,23 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
 
     setIsProcessing(true);
-    toast({ title: 'Generating Image...', description: 'This may take a moment.' });
+    toast({ title: 'Generating Image...', description: 'This may take a moment for high quality export.' });
     
     try {
-        const dataUrl = await toPng(sheetElement, {
-            quality: 1,
-            pixelRatio: 3,
-            backgroundColor: '#ffffff',
-            filter: imageFilter
+        const canvas = await html2canvas(sheetElement, {
+            scale: 4, // SUPER HIGH RESOLUTION
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            backgroundColor: null,
+            imageTimeout: 0,
+            onclone: (document) => {
+              // Remove placeholder elements from the cloned document before capture
+              document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+            }
         });
+
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
 
         const link = document.createElement("a");
         link.download = `photosheet-page-${currentSheet + 1}.png`;
@@ -161,62 +164,42 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
     
     setIsProcessing(true);
-    toast({ title: 'Generating PDF...', description: 'This may take a few moments.' });
+    toast({ title: 'Generating PDF...', description: 'This may take a few moments for all pages.' });
 
     try {
-      const { default: jsPDF } = await import('jspdf');
-      
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const A4_WIDTH = 210;
-      const A4_HEIGHT = 297;
-
-      const sheetContainer = sheetPreviewRef.current;
-      if(!sheetContainer) {
-          throw new Error("Sheet container ref is not available.");
-      }
-
+      const a4WidthMm = 210;
+      const a4HeightMm = 297;
+      
       for (let i = 0; i < photos.length; i++) {
+        const sheetElementToCapture = sheetPreviewRef.current?.querySelector(`#sheet-${i}`) as HTMLElement | null;
+        if (!sheetElementToCapture) continue;
+
         if (i > 0) {
           pdf.addPage();
         }
-        
-        const tempSheetDiv = document.createElement('div');
-        tempSheetDiv.style.width = `${sheetContainer.clientWidth}px`;
-        tempSheetDiv.style.height = `${sheetContainer.clientHeight}px`;
-        tempSheetDiv.style.position = 'absolute';
-        tempSheetDiv.style.left = '-9999px';
-        tempSheetDiv.style.backgroundColor = 'white';
 
-        const sheetContent = sheetContainer.querySelector(`#sheet-${currentSheet}`)?.cloneNode(true) as HTMLElement;
-
-        // Update images for the specific sheet
-        const sheetPhotos = photos[i];
-        const photoElements = sheetContent.querySelectorAll('.photo-item');
-        photoElements.forEach((photoDiv, index) => {
-            const img = photoDiv.querySelector('img');
-            const placeholder = photoDiv.querySelector('.placeholder-icon');
-            if (sheetPhotos[index] && sheetPhotos[index].imageSrc) {
-                if (img) img.src = sheetPhotos[index].imageSrc;
-                if (placeholder) placeholder.remove();
-            } else {
-                photoDiv.remove(); // Remove placeholder divs from downloaded file
+        const canvas = await html2canvas(sheetElementToCapture, {
+            scale: 4, // VERY IMPORTANT for high DPI
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            backgroundColor: null,
+            imageTimeout: 0,
+            onclone: (document) => {
+              // Remove placeholder elements from the cloned document before capture
+              document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
             }
         });
         
-        tempSheetDiv.appendChild(sheetContent);
-        document.body.appendChild(tempSheetDiv);
+        const imgData = canvas.toDataURL('image/png', 1.0);
         
-        const imgData = await toPng(tempSheetDiv, {
-            quality: 1,
-            pixelRatio: 3,
-            backgroundColor: '#ffffff',
-            filter: imageFilter
-        });
+        // A4 aspect ratio
+        const pdfWidth = a4WidthMm;
+        const pdfHeight = a4HeightMm;
         
-        pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH, A4_HEIGHT);
-        document.body.removeChild(tempSheetDiv);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       }
-
       
       pdf.save('photosheet.pdf');
 
@@ -238,14 +221,34 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     }
   }
   
-  const handlePrint = () => {
-     if (photos.length === 0 || images.length === 0) {
-      toast({ title: 'Sheet not generated', description: 'Please upload an image first.', variant: 'destructive' });
-      return;
+  const handlePrint = async () => {
+    if (photos.length === 0 || images.length === 0) {
+        toast({ title: 'Sheet not generated', description: 'Please upload an image first.', variant: 'destructive' });
+        return;
     }
+
+    const printWrapper = document.getElementById('print-wrapper') || document.createElement('div');
+    if (!document.getElementById('print-wrapper')) {
+        printWrapper.id = 'print-wrapper';
+        document.body.appendChild(printWrapper);
+    }
+    
+    printWrapper.innerHTML = '';
+    
+    for (let i = 0; i < photos.length; i++) {
+        const sheetElement = sheetPreviewRef.current?.querySelector(`#sheet-${i}`) as HTMLElement | null;
+        if (sheetElement) {
+            const clone = sheetElement.cloneNode(true) as HTMLElement;
+            // Remove placeholders from the clone
+            clone.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+            printWrapper.appendChild(clone);
+        }
+    }
+
     saveToHistory();
     window.print();
   };
+
 
   const handleReset = () => {
     resetLayout();
@@ -278,8 +281,9 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                     dragIndex={dragIndex}
                     touchTargetIndex={touchTargetIndex}
                     swapPhotos={swapPhotos}
-                    key={`${photos.length}-${copies}-${borderWidth}-${photoSpacing}-${unit}`}
+                    key={`${photos.length}-${copies}-${borderWidth}-${photoSpacing}-${unit}-${displayPhotoWidth}-${displayPhotoHeight}`}
                   />
+                  <div id="print-wrapper" className="hidden"></div>
               </div>
           </div>
           {totalSheets > 1 && (
@@ -385,50 +389,51 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
               </div>
 
               <Separator />
-              <TooltipProvider>
-                <div className="flex w-full items-center justify-center gap-2 pt-2">
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPng}>
-                                {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileImage className="h-5 w-5" />}
-                                <span className="ml-2">PNG</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Download PNG (Current Sheet)</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPdf}>
-                                {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
-                                <span className="ml-2">PDF</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Download PDF (All Sheets)</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                             <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handlePrint}>
-                                {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Printer className="h-5 w-5" />}
-                                <span className="ml-2">Print</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Print</p></TooltipContent>
-                    </Tooltip>
-                </div>
-              </TooltipProvider>
-
-              <Separator />
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={handleBack} disabled={isProcessing} className="w-full">
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      <span className="sm:hidden md:inline">Change Photos</span>
-                      <span className="hidden sm:inline md:hidden">Photos</span>
-                  </Button>
-                  <Button variant="ghost" onClick={handleReset} disabled={isProcessing} className="text-muted-foreground w-full">
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      <span className="sm:hidden md:inline">Reset Layout</span>
-                      <span className="hidden sm:inline md:hidden">Reset</span>
-                  </Button>
+               <div className="grid grid-cols-1 gap-4">
+                  <TooltipProvider>
+                    <div className="flex w-full items-center justify-center gap-2">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPng}>
+                                    {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileImage className="h-5 w-5" />}
+                                    <span className="ml-2">PNG</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Download PNG (Current Sheet)</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handleDownloadPdf}>
+                                    {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
+                                    <span className="ml-2">PDF</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Download PDF (All Sheets)</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                 <Button variant="outline" className="flex-1 text-xs px-2" disabled={images.length === 0 || isProcessing} onClick={handlePrint}>
+                                    {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Printer className="h-5 w-5" />}
+                                    <span className="ml-2">Print</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Print</p></TooltipContent>
+                        </Tooltip>
+                    </div>
+                  </TooltipProvider>
+                  <Separator />
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <Button variant="outline" onClick={handleBack} disabled={isProcessing} className="w-full">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          <span className="sm:hidden md:inline">Change Photos</span>
+                          <span className="hidden sm:inline md:hidden">Photos</span>
+                      </Button>
+                      <Button variant="ghost" onClick={handleReset} disabled={isProcessing} className="text-muted-foreground w-full">
+                          <RotateCcw className="mr-2 h-4 w-4" />
+                          <span className="sm:hidden md:inline">Reset Layout</span>
+                          <span className="hidden sm:inline md:hidden">Reset</span>
+                      </Button>
+                  </div>
               </div>
 
           </CardContent>
@@ -437,6 +442,3 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </div>
   );
 }
-
-
-    

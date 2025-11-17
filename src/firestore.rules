@@ -30,7 +30,6 @@ service cloud.firestore {
 
       /**
        * @description Rules for PhotoSheets under a user profile.
-       * A user can list, get, create, update, and delete their own photosheets.
        */
       match /photosheets/{photoSheetId} {
         allow list, get: if isOwner(userId);
@@ -40,3 +39,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

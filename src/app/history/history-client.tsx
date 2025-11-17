@@ -562,3 +562,5 @@ export function HistoryPageClient() {
     </div>
   );
 }
+
+    
