@@ -1,4 +1,4 @@
-
+f
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -111,15 +111,32 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
     border-style: solid;
   }
   .photo-item[draggable="true"]:hover {
     cursor: grab;
   }
-  .photo-item.drag-over {
-    border-color: hsl(var(--primary));
-    background-color: hsl(var(--primary) / 0.1);
+  .photo-item.drag-over::before {
+    content: "";
+    position: absolute;
+    inset: -3px; 
+    z-index: 10;
+    padding: 3px;
+    background: linear-gradient(
+        120deg,
+        #00eaff,
+        #0077ff,
+        #6f00ff,
+        #ff00ea,
+        #00eaff
+    );
+    background-size: 300%;
+    animation: borderMove 2s linear infinite;
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
   }
   .photo-preview {
     width: 100%;
@@ -138,6 +155,11 @@
     50% { border-color: #F4B400 transparent; }
     75% { border-color: #0F9D58 transparent; }
     100% { border-color: #4285F4 transparent; }
+  }
+
+  @keyframes borderMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
   }
 }
 

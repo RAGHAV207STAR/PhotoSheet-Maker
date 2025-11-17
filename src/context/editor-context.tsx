@@ -194,9 +194,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     });
   
     const photosBySheet: any[][] = [];
-    for (let i = 0; i < allImageSources.length; i += placeholders.length) {
-      const sheetSources = allImageSources.slice(i, i + placeholders.length);
-      photosBySheet.push(sheetSources);
+    if (placeholders.length > 0) {
+        for (let i = 0; i < allImageSources.length; i += placeholders.length) {
+            const sheetSources = allImageSources.slice(i, i + placeholders.length);
+            photosBySheet.push(sheetSources);
+        }
     }
   
     const finalSheets = photosBySheet.map(sheetSources => {
@@ -208,7 +210,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       });
     });
 
-    setPhotos(finalSheets);
+    if (finalSheets.length > 0) {
+        setPhotos(finalSheets);
+    }
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images, copies, placeholders]);
@@ -241,7 +245,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   
   
   const resetLayout = useCallback(() => {
-    setPhotos([]);
     setCurrentSheet(0);
     setBorderWidthState(initialBorderWidth);
     setPhotoSpacingState(initialPhotoSpacing);
@@ -257,6 +260,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const resetEditor = useCallback(() => {
     setImages([]);
     setCopies(initialCopies);
+    setPhotos([]);
     resetLayout();
   }, [resetLayout]);
 
@@ -310,5 +314,3 @@ export function useEditor() {
   }
   return context;
 }
-
-    

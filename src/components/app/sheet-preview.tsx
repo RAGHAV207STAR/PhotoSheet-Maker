@@ -53,7 +53,7 @@ const PhotoItem = ({
       }}
       className={cn(
           'photo-item', 
-          isDropTarget && 'drag-over-glow',
+          isDropTarget && 'drag-over',
           !photo.imageSrc && 'placeholder-wrapper'
       )}
       draggable={!!photo.imageSrc}
@@ -112,6 +112,7 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     const target = e.target as HTMLDivElement;
+    // Only allow dragging if the item has an image
     if (target.querySelector('img')?.src) {
         dragIndex.current = index;
         e.dataTransfer.effectAllowed = "move";
@@ -160,7 +161,8 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
       if (!touch || dragIndex.current === null) return;
       
       const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropTargetIndexAttr = dropTargetElement?.closest('.photo-item')?.getAttribute('data-photo-index');
+      const dropTargetDiv = dropTargetElement?.closest('.photo-item');
+      const dropTargetIndexAttr = dropTargetDiv?.getAttribute('data-photo-index');
       
       if (dropTargetIndexAttr) {
           const dropIndex = parseInt(dropTargetIndexAttr, 10);
@@ -168,7 +170,6 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
             setDropTargetIndex(dropIndex);
             touchTargetIndex.current = dropIndex;
           } else {
-             // If hovering over the same element, clear the target
             if (dropIndex === dragIndex.current) {
                setDropTargetIndex(null);
                touchTargetIndex.current = null;

@@ -175,59 +175,48 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
           throw new Error("Sheet container ref is not available.");
       }
 
-      // Hide the main preview to avoid flickering, and create a temp container
-      sheetContainer.style.visibility = 'hidden';
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      // Use clientWidth/Height of the on-screen element to set dimensions for the off-screen one
-      tempContainer.style.width = `${sheetContainer.clientWidth}px`;
-      tempContainer.style.height = `${sheetContainer.clientHeight}px`;
-      document.body.appendChild(tempContainer);
-      
-
       for (let i = 0; i < photos.length; i++) {
         if (i > 0) {
           pdf.addPage();
         }
         
-        // Temporarily render the sheet off-screen to generate image
-        const sheetToRender = photos[i];
         const tempSheetDiv = document.createElement('div');
-        tempSheetDiv.id = `temp-sheet-${i}`;
-        tempSheetDiv.className = 'printable-area w-full h-full relative bg-white';
-        // Clone the inner structure of the currently displayed sheet
-        tempSheetDiv.innerHTML = sheetContainer.querySelector(`#sheet-${currentSheet}`)?.innerHTML || '';
-        
-        // Update images and placeholders for the specific sheet being processed
-        const photoElements = tempSheetDiv.querySelectorAll<HTMLDivElement>('.photo-item');
+        tempSheetDiv.style.width = `${sheetContainer.clientWidth}px`;
+        tempSheetDiv.style.height = `${sheetContainer.clientHeight}px`;
+        tempSheetDiv.style.position = 'absolute';
+        tempSheetDiv.style.left = '-9999px';
+        tempSheetDiv.style.backgroundColor = 'white';
+
+        const sheetContent = sheetContainer.querySelector(`#sheet-${currentSheet}`)?.cloneNode(true) as HTMLElement;
+
+        // Update images for the specific sheet
+        const sheetPhotos = photos[i];
+        const photoElements = sheetContent.querySelectorAll('.photo-item');
         photoElements.forEach((photoDiv, index) => {
-            const photoData = sheetToRender[index];
-            if (!photoData || !photoData.imageSrc) {
-                // If it's a placeholder, hide it completely.
-                photoDiv.style.display = 'none';
+            const img = photoDiv.querySelector('img');
+            const placeholder = photoDiv.querySelector('.placeholder-icon');
+            if (sheetPhotos[index] && sheetPhotos[index].imageSrc) {
+                if (img) img.src = sheetPhotos[index].imageSrc;
+                if (placeholder) placeholder.remove();
             } else {
-                const img = photoDiv.querySelector('img');
-                if (img) img.src = photoData.imageSrc;
+                photoDiv.remove(); // Remove placeholder divs from downloaded file
             }
         });
-
-        tempContainer.innerHTML = '';
-        tempContainer.appendChild(tempSheetDiv);
+        
+        tempSheetDiv.appendChild(sheetContent);
+        document.body.appendChild(tempSheetDiv);
         
         const imgData = await toPng(tempSheetDiv, {
             quality: 1,
             pixelRatio: 3,
             backgroundColor: '#ffffff',
-            filter: imageFilter,
+            filter: imageFilter
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH, A4_HEIGHT);
+        document.body.removeChild(tempSheetDiv);
       }
 
-      // Cleanup
-      document.body.removeChild(tempContainer);
-      sheetContainer.style.visibility = 'visible';
       
       pdf.save('photosheet.pdf');
 
@@ -245,8 +234,6 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         variant: 'destructive',
       });
     } finally {
-        const sheetContainer = sheetPreviewRef.current;
-        if (sheetContainer) sheetContainer.style.visibility = 'visible';
         setIsProcessing(false);
     }
   }
@@ -291,6 +278,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                     dragIndex={dragIndex}
                     touchTargetIndex={touchTargetIndex}
                     swapPhotos={swapPhotos}
+                    key={`${photos.length}-${copies}-${borderWidth}-${photoSpacing}-${unit}`}
                   />
               </div>
           </div>
