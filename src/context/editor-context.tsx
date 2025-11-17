@@ -2,7 +2,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 export interface Photo {
   id: number;
@@ -41,7 +41,11 @@ interface EditorContextType {
   setPhotos: Dispatch<SetStateAction<Photo[][]>>;
   currentSheet: number;
   setCurrentSheet: Dispatch<SetStateAction<number>>;
-  swapPhoto: (sourceIndex: number, targetIndex: number) => void;
+  swapPhotos: (dropIndex: number) => void;
+  dragIndex: React.MutableRefObject<number | null>;
+  touchTargetIndex: React.MutableRefObject<number | null>;
+  dropTargetIndex: number | null;
+  setDropTargetIndex: Dispatch<SetStateAction<number | null>>;
   
   // Common settings
   borderWidth: number;
@@ -78,10 +82,10 @@ const initialBorderWidth = 2;
 const initialPhotoSpacing = 0.3; // in cm
 const initialPhotoWidthCm = 3.15;
 const initialPhotoHeightCm = 4.15;
-const initialMarginTopCm = 1;
-const initialMarginBottomCm = 1;
-const initialMarginLeftCm = 1;
-const initialMarginRightCm = 1;
+const initialMarginTopCm = 0.3;
+const initialMarginBottomCm = 0.3;
+const initialMarginLeftCm = 0.3;
+const initialMarginRightCm = 0.3;
 const initialUnit = 'cm';
 
 export function EditorProvider({ children }: { children: React.ReactNode }) {
@@ -91,6 +95,10 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   // Standard photosheet state
   const [photos, setPhotos] = useState<Photo[][]>([]);
   const [currentSheet, setCurrentSheet] = useState<number>(0);
+  const dragIndex = useRef<number | null>(null);
+  const touchTargetIndex = useRef<number | null>(null);
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+
   
   // Common settings
   const [borderWidth, setBorderWidthState] = useState<number>(initialBorderWidth);
@@ -129,11 +137,10 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     const photoWidthMm = photoWidthCm * 10;
     const photoHeightMm = photoHeightCm * 10;
     const spacingMm = photoSpacing * 10;
-
-    const marginTopMm = photoSpacing * 10;
-    const marginBottomMm = photoSpacing * 10;
-    const marginLeftMm = photoSpacing * 10;
-    const marginRightMm = photoSpacing * 10;
+    const marginTopMm = marginTopCm * 10;
+    const marginBottomMm = marginBottomCm * 10;
+    const marginLeftMm = marginLeftCm * 10;
+    const marginRightMm = marginRightCm * 10;
 
     const printableWidth = sheetWidthMm - marginLeftMm - marginRightMm;
     const printableHeight = sheetHeightMm - marginTopMm - marginBottomMm;
@@ -153,7 +160,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
                     const xPos = startX + c * (photoWidthMm + spacingMm);
                     const yPos = startY + r * (photoHeightMm + spacingMm);
 
-                    if (xPos + photoWidthMm <= sheetWidthMm - marginRightMm + 1 && yPos + photoHeightMm <= sheetHeightMm - marginBottomMm + 1) {
+                    if (xPos + photoWidthMm <= sheetWidthMm - marginRightMm + 0.1 && yPos + photoHeightMm <= sheetHeightMm - marginBottomMm + 0.1) {
                         newPlaceholders.push({
                             id: r * cols + c,
                             x: (xPos / sheetWidthMm) * 100,
@@ -168,7 +175,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         }
     }
     return newPlaceholders;
-  }, [photoWidthCm, photoHeightCm, photoSpacing]);
+  }, [photoWidthCm, photoHeightCm, photoSpacing, marginTopCm, marginBottomCm, marginLeftCm, marginRightCm]);
 
   useEffect(() => {
     if (images.length === 0 || placeholders.length === 0) {
@@ -180,7 +187,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   
     const allImageSources: string[] = [];
     images.forEach(image => {
-      // Use the original image source for every copy.
       const originalSrc = image.src;
       for (let i = 0; i < copies; i++) {
         allImageSources.push(originalSrc);
@@ -202,33 +208,37 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       });
     });
 
-    // Only update state if the generated sheets are different from the current ones.
-    if (JSON.stringify(finalSheets) !== JSON.stringify(photos)) {
-        setPhotos(finalSheets);
-    }
+    setPhotos(finalSheets);
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images, copies, placeholders]);
 
 
-  const swapPhoto = useCallback((sourceIndex: number, targetIndex: number) => {
-    setPhotos(currentSheets => {
-        const newSheets = [...currentSheets];
-        const currentSheetPhotos = newSheets[currentSheet];
-        if (!currentSheetPhotos) return currentSheets;
+ const swapPhotos = useCallback((dropIndex: number) => {
+    const fromIndex = dragIndex.current;
+    if (fromIndex === null || fromIndex === dropIndex) return;
 
-        // Create a mutable copy of the current sheet's photos
-        const updatedPhotos = [...currentSheetPhotos];
+    setPhotos((prevSheets) => {
+      const newSheets = [...prevSheets];
+      const currentSheetPhotos = newSheets[currentSheet];
+      if (!currentSheetPhotos) return prevSheets;
+      
+      const updatedSheet = [...currentSheetPhotos];
+      
+      const fromPhoto = updatedSheet[fromIndex];
+      const toPhoto = updatedSheet[dropIndex];
+      
+      if(fromPhoto && toPhoto) {
+        const tempSrc = fromPhoto.imageSrc;
+        updatedSheet[fromIndex] = { ...fromPhoto, imageSrc: toPhoto.imageSrc };
+        updatedSheet[dropIndex] = { ...toPhoto, imageSrc: tempSrc };
+      }
 
-        // Swap the image sources
-        const sourceImageSrc = updatedPhotos[sourceIndex].imageSrc;
-        updatedPhotos[sourceIndex] = { ...updatedPhotos[sourceIndex], imageSrc: updatedPhotos[targetIndex].imageSrc };
-        updatedPhotos[targetIndex] = { ...updatedPhotos[targetIndex], imageSrc: sourceImageSrc };
-        
-        newSheets[currentSheet] = updatedPhotos;
-        return newSheets;
+      newSheets[currentSheet] = updatedSheet;
+      return newSheets;
     });
   }, [currentSheet]);
+  
   
   const resetLayout = useCallback(() => {
     setPhotos([]);
@@ -260,7 +270,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setPhotos,
     currentSheet,
     setCurrentSheet,
-    swapPhoto,
+    swapPhotos,
+    dragIndex,
+    touchTargetIndex,
+    dropTargetIndex,
+    setDropTargetIndex,
     borderWidth,
     setBorderWidth,
     photoSpacing,
@@ -296,3 +310,5 @@ export function useEditor() {
   }
   return context;
 }
+
+    
