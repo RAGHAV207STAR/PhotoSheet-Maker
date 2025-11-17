@@ -169,7 +169,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                        <AccordionItem value="item-1" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">How do I make a passport photo online with this tool?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          To make a passport photo online, simply select the number of copies you need from the "Quick Start" section, upload your image on the next screen, and our tool will automatically arrange it on an A4 sheet. You can then download the sheet as a PDF and print it.
+                          To make a passport photo online, simply select the number of copies you need from the "Quick Start" section, upload your image on the next screen, and our tool will automatically arrange it on an A4 sheet. You can then download the sheet as a PNG and print it.
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
@@ -187,7 +187,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                        <AccordionItem value="item-4" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">What's the best way to print the photosheet?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          For best results, download the generated PDF and print it on the appropriate paper size (e.g., A4 photo paper). Ensure your printer settings are set to '100%' or 'Actual Size' to avoid scaling issues.
+                          For best results, download the generated PNG and print it on the appropriate paper size (e.g., A4 photo paper). Ensure your printer settings are set to '100%' or 'Actual Size' to avoid scaling issues.
                           </AccordionContent>
                       </AccordionItem>
                   </Accordion>
@@ -199,7 +199,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                           <h3 className="text-3xl font-bold">Ready to Start?</h3>
                           <p className="mt-2 text-lg text-blue-100">Create your perfect photo layout now — it’s free!</p>
                           <Button asChild size="lg" className="mt-6 bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg transition-all">
-                              <Link href="#top">Select an Option Above to Begin</Link>
+                              <Link href="/editor">Create Photosheet</Link>
                           </Button>
                       </CardContent>
                   </Card>

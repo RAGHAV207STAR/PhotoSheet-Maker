@@ -9,7 +9,6 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
 import { useRef, useState } from 'react';
 import { ImagePreviewDialog } from './image-preview-dialog';
-import { useRouter } from 'next/navigation';
 
 interface PhotoGridProps {
   images: (ImagePlaceholder | { id: string; imageUrl: string; description: string; imageHint: string })[];
@@ -26,7 +25,6 @@ const PhotoGridItem = ({ item, isSelected, selectionIndex, onToggleSelect, isSel
     onToggleSelect: (imageUrl:string) => void;
     isSelectionPreview?: boolean;
 }) => {
-  const router = useRouter();
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const didLongPress = useRef(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -54,9 +52,7 @@ const PhotoGridItem = ({ item, isSelected, selectionIndex, onToggleSelect, isSel
       onToggleSelect(item.imageUrl);
   }
 
-  const navigateToEditor = () => {
-    // This is a placeholder for future functionality
-    // For now, we just close the dialog.
+  const closePreview = () => {
     setIsPreviewOpen(false);
   };
 
@@ -122,7 +118,7 @@ const PhotoGridItem = ({ item, isSelected, selectionIndex, onToggleSelect, isSel
           isOpen={isPreviewOpen}
           onOpenChange={setIsPreviewOpen}
           imageUrl={item.imageUrl}
-          onViewSheet={navigateToEditor}
+          onViewSheet={closePreview}
           title="Image Preview"
       />
     </>
@@ -174,4 +170,3 @@ export default function PhotoGrid({ images, selected, onToggleSelect, onAddClick
     </div>
   );
 }
-

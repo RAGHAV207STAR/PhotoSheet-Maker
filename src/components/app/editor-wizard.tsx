@@ -54,6 +54,11 @@ export default function EditorWizard() {
     }
     
     setStep(1);
+
+    // Cleanup function: This will be called when the component is unmounted.
+    return () => {
+      resetEditor();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [historyId, copiesParam]); // Only re-run if these params change
 
