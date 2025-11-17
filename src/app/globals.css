@@ -111,7 +111,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.2s ease-in-out;
+    transition: border-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    border-style: solid;
   }
   .photo-item[draggable="true"]:hover {
     cursor: grab;
@@ -231,5 +232,3 @@
 .animate-\[shine_3s_infinite\] {
   animation: shine 3s infinite linear;
 }
-
-    
