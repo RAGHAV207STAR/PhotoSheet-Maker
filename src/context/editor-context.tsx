@@ -97,8 +97,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   // Standard photosheet state
   const [photos, setPhotos] = useState<Photo[][]>([]);
   const [currentSheet, setCurrentSheet] = useState<number>(0);
-  const dragIndex = useRef<number | null>(null);
-  const touchTargetIndex = useRef<number | null>(null);
+  const dragIndex = useRef<number | null>(null) as React.MutableRefObject<number | null>;
+  const touchTargetIndex = useRef<number | null>(null) as React.MutableRefObject<number | null>;
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
   
@@ -320,3 +320,5 @@ export function useEditor() {
   }
   return context;
 }
+
+    

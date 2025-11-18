@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { type RefObject } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { ImageIcon } from 'lucide-react';
 import type { Photo } from '@/context/editor-context';
@@ -94,8 +94,8 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
   currentSheet: number;
   borderWidth: number;
   dropTargetIndex: number | null;
-  dragIndex: RefObject<number | null>;
-  touchTargetIndex: RefObject<number | null>;
+  dragIndex: React.MutableRefObject<number | null>;
+  touchTargetIndex: React.MutableRefObject<number | null>;
   setDropTargetIndex: (index: number | null) => void;
   swapPhotos: (dropIndex: number) => void;
 }>((props, ref) => {

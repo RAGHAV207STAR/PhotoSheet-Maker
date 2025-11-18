@@ -428,5 +428,3 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </div>
   );
 }
-
-    
