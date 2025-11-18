@@ -3,6 +3,8 @@
 
 import type { Dispatch, SetStateAction } from 'react';
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 export interface Photo {
   id: number;
@@ -303,7 +305,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
+    <EditorContext.Provider value={value}>
+        <DndProvider backend={HTML5Backend}>
+            {children}
+        </DndProvider>
+    </EditorContext.Provider>
   );
 }
 

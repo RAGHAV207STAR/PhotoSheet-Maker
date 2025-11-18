@@ -3,6 +3,7 @@
 
 import dynamic from 'next/dynamic';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
+import { EditorLoader } from './editor-loader';
 
 // The EditorWizard component uses client-side hooks (useSearchParams, useContext),
 // so it must be loaded on the client. We use dynamic import to code-split it.
@@ -15,5 +16,5 @@ const EditorWizard = dynamic(() => import('@/components/app/editor-wizard'), {
 });
 
 export default function EditorPage() {
-  return <EditorWizard />;
+  return <EditorLoader />;
 }
