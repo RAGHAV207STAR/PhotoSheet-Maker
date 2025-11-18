@@ -177,7 +177,7 @@
     position: relative;
     page-break-after: always;
   }
-  #print-wrapper {
+  #print-wrapper-for-print {
     display: block !important;
     position: absolute;
     left: 0;
@@ -189,7 +189,7 @@
     visibility: visible;
     background: white;
   }
-  #print-wrapper .printable-area {
+  #print-wrapper-for-print .printable-area {
     visibility: visible;
   }
   .photo-item {
@@ -202,7 +202,7 @@
   .placeholder-icon {
     display: none !important;
   }
-  body > *:not(#print-wrapper) {
+  body > *:not(#print-wrapper-for-print) {
     display: none !important;
   }
 }
@@ -254,5 +254,9 @@
 .animate-\[shine_3s_infinite\] {
   animation: shine 3s infinite linear;
 }
+
+    
+
+    
 
     

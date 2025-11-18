@@ -16,7 +16,6 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import jsPDF from 'jspdf';
 
 
 interface PreviewStepProps {
@@ -92,35 +91,45 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
       createdAt: serverTimestamp(),
     };
     
-    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'photosheets'), photosheetData)
-    .catch(error => {
-        toast({
-            variant: "destructive",
-            title: "Could Not Save History",
-            description: "There was an error saving your sheet to history.",
-        });
-    });
+    addDocumentNonBlocking(collection(firestore, 'users', user.uid, 'photosheets'), photosheetData);
   }
   
   const generateCanvas = async (sheetIndex: number): Promise<HTMLCanvasElement> => {
     const { default: html2canvas } = await import('html2canvas');
-    const sheetElement = sheetPreviewRef.current?.querySelector(`#sheet-${sheetIndex}`) as HTMLElement;
-    if (!sheetElement) {
+    
+    const printWrapper = document.getElementById('print-wrapper-for-print');
+    if (!printWrapper) {
+       throw new Error("Print wrapper element not found.");
+    }
+    
+    const sheetElementToClone = document.querySelector(`#sheet-${sheetIndex}`) as HTMLElement;
+     if (!sheetElementToClone) {
       throw new Error(`Sheet element with index ${sheetIndex} not found.`);
     }
 
-    const canvas = await html2canvas(sheetElement, {
-        scale: 4, // SUPER HIGH RESOLUTION
+    printWrapper.innerHTML = ''; 
+    const clonedSheet = sheetElementToClone.cloneNode(true) as HTMLElement;
+    printWrapper.appendChild(clonedSheet);
+    
+    printWrapper.style.display = 'block';
+    
+    const canvas = await html2canvas(clonedSheet, {
+        scale: 4, 
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true,
         logging: false,
-        backgroundColor: null,
-        imageTimeout: 0,
-        onclone: (document) => {
-          // Remove placeholder elements from the cloned document before capture
-          document.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+        backgroundColor: '#ffffff',
+        removeContainer: true,
+        onclone: (clonedDoc) => {
+          clonedDoc.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+          clonedDoc.querySelectorAll('.placeholder-icon').forEach(el => el.remove());
+          clonedDoc.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
         }
     });
+
+    printWrapper.style.display = 'none';
+    printWrapper.innerHTML = '';
+
     return canvas;
   }
   
@@ -170,20 +179,41 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     toast({ title: 'Generating PDF...', description: 'This may take a few moments for all pages.' });
 
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const { default: jsPDF } = await import('jspdf');
       
-      for (let i = 0; i < photos.length; i++) {
-        if (i > 0) {
-          pdf.addPage();
-        }
+      const firstCanvas = await generateCanvas(0);
 
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [firstCanvas.width, firstCanvas.height],
+        compress: false,
+      });
+
+      pdf.addImage(
+        firstCanvas.toDataURL('image/png', 1.0),
+        "PNG",
+        0,
+        0,
+        firstCanvas.width,
+        firstCanvas.height,
+        undefined,
+        "FAST"
+      );
+
+      for (let i = 1; i < photos.length; i++) {
+        pdf.addPage([firstCanvas.width, firstCanvas.height], 'portrait');
         const canvas = await generateCanvas(i);
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        pdf.addImage(
+          canvas.toDataURL('image/png', 1.0),
+          'PNG',
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+          undefined,
+          'FAST'
+        );
       }
       
       pdf.save('photosheet.pdf');
@@ -211,22 +241,21 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
         toast({ title: 'Sheet not generated', description: 'Please upload an image first.', variant: 'destructive' });
         return;
     }
-
-    const printWrapper = document.getElementById('print-wrapper') || document.createElement('div');
-    if (!document.getElementById('print-wrapper')) {
-        printWrapper.id = 'print-wrapper';
-        printWrapper.style.display = 'none';
-        document.body.appendChild(printWrapper);
+    
+    const printWrapper = document.getElementById('print-wrapper-for-print');
+    if (!printWrapper) {
+        console.error("Print wrapper for printing not found");
+        return;
     }
     
     printWrapper.innerHTML = '';
     
     for (let i = 0; i < photos.length; i++) {
-        const sheetElement = sheetPreviewRef.current?.querySelector(`#sheet-${i}`) as HTMLElement | null;
+        const sheetElement = document.querySelector(`#sheet-${i}`) as HTMLElement | null;
         if (sheetElement) {
             const clone = sheetElement.cloneNode(true) as HTMLElement;
-            // Remove placeholders from the clone
             clone.querySelectorAll('.placeholder-wrapper').forEach(el => el.remove());
+            clone.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
             printWrapper.appendChild(clone);
         }
     }
@@ -267,9 +296,8 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
                     dragIndex={dragIndex}
                     touchTargetIndex={touchTargetIndex}
                     swapPhotos={swapPhotos}
-                    key={`${photos.length}-${copies}-${borderWidth}-${photoSpacing}-${unit}-${displayPhotoWidth}-${displayPhotoHeight}`}
+                    key={`display-${photos.length}-${copies}-${borderWidth}-${photoSpacing}-${unit}-${displayPhotoWidth}-${displayPhotoHeight}`}
                   />
-                  <div id="print-wrapper" className="hidden"></div>
               </div>
           </div>
           {totalSheets > 1 && (
@@ -296,6 +324,18 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
             </div>
           )}
       </div>
+
+      <div 
+        id="print-wrapper-for-print" 
+        className="hidden"
+        style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: '-9999px',
+            width: '794px',
+            height: '1123px',
+        }}
+      />
 
       <div className="w-full lg:w-[420px] lg:max-w-[420px] flex-shrink-0 no-print">
         <Card className="bg-white/60 backdrop-blur-lg border-0 shadow-lg rounded-xl sticky top-24">
@@ -428,3 +468,7 @@ export default function PreviewStep({ onBack }: PreviewStepProps) {
     </div>
   );
 }
+
+    
+
+    

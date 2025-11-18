@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, User, onAuthStateChanged } from 'firebase/auth';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
 import dynamic from 'next/dynamic';
@@ -35,7 +35,7 @@ const LoginPageContent = () => {
   const { toast } = useToast();
 
   const handleSuccessfulLogin = async (user: User) => {
-    if (!firestore) return;
+    if (!firestore || !user) return;
     const userDocRef = doc(firestore, 'users', user.uid);
     const userData = {
         displayName: user.displayName,
@@ -44,63 +44,65 @@ const LoginPageContent = () => {
         lastSeen: serverTimestamp(),
     };
     
-    // Use non-blocking write with error handling
+    // Non-blocking write with error handling. This will create or update the user profile.
     setDocumentNonBlocking(userDocRef, userData, { merge: true });
     
     toast({ title: 'Success', description: 'Logged in successfully.' });
     router.push('/');
-
     setLoading(false);
-    setIsAuthLoading(false);
   };
 
 
   useEffect(() => {
-    if(auth?.currentUser) {
-        router.push('/');
-    } else {
+    if (!auth) {
         setIsAuthLoading(false);
+        return;
     }
-  }, [auth, router]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            handleSuccessfulLogin(user);
+        } else {
+            setIsAuthLoading(false);
+        }
+    });
+
+    return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
     if (!auth) return;
     setLoading(true);
-    try {
-      let userCredential;
-      if (action === 'login') {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      }
-      await handleSuccessfulLogin(userCredential.user);
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: error.message,
-      });
-      setLoading(false);
-    }
+    
+    const authPromise = action === 'login'
+        ? signInWithEmailAndPassword(auth, email, password)
+        : createUserWithEmailAndPassword(auth, email, password);
+
+    authPromise.catch((error: any) => {
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Failed',
+            description: error.message,
+        });
+        setLoading(false);
+    });
   };
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
     setLoading(true);
     const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      await handleSuccessfulLogin(result.user);
-    } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({
-          variant: 'destructive',
-          title: 'Google Sign-In Failed',
-          description: error.message,
-        });
-      }
-      setLoading(false);
-    }
+    
+    signInWithPopup(auth, provider).catch((error: any) => {
+        if (error.code !== 'auth/popup-closed-by-user') {
+            toast({
+              variant: 'destructive',
+              title: 'Google Sign-In Failed',
+              description: error.message,
+            });
+        }
+        setLoading(false);
+    });
   };
 
   if (isAuthLoading) {

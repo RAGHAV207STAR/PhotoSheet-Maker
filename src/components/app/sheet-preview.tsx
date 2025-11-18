@@ -190,21 +190,19 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
     setDropTargetIndex(null);
   };
 
-
-  const sheetToRender = (photos && photos[currentSheet]) ? photos[currentSheet] : [];
-
   return (
     <div ref={ref} id="sheet-container" className="w-full h-full bg-white">
-      <div
-        id={`sheet-${currentSheet}`}
-        className="printable-area w-full h-full relative bg-white"
-        key={`${currentSheet}-${photos.length}-${borderWidth}-${JSON.stringify(sheetToRender[0])}`}
-      >
-        {sheetToRender.map((photo, index) => {
-           const isDragging = dragIndex.current === index;
-           const isDropTarget = dropTargetIndex === index;
-           return (
-             <PhotoItem 
+      {photos.map((sheetData, sheetIndex) => (
+        <div
+          id={`sheet-${sheetIndex}`}
+          className={cn("printable-area w-full h-full relative bg-white", sheetIndex !== currentSheet && "hidden")}
+          key={`${sheetIndex}-${photos.length}-${borderWidth}-${JSON.stringify(sheetData[0])}`}
+        >
+          {sheetData.map((photo, index) => {
+            const isDragging = dragIndex.current === index && sheetIndex === currentSheet;
+            const isDropTarget = dropTargetIndex === index && sheetIndex === currentSheet;
+            return (
+              <PhotoItem 
                 key={photo.id} 
                 index={index} 
                 photo={photo}
@@ -221,17 +219,18 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
                 handleTouchMove={handleTouchMove}
                 handleTouchEnd={handleTouchEnd}
               />
-           )
-        })}
-        
-        {sheetToRender.length === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground p-4 no-print">
-              <ImageIcon className="h-12 w-12 mb-4" />
-              <h3 className="text-lg font-semibold">A4 Preview</h3>
-              <p className="text-sm max-w-xs mx-auto">Your photosheet layout will appear here. Adjust settings to generate a layout.</p>
-            </div>
-        )}
-      </div>
+            )
+          })}
+          
+          {sheetData.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground p-4 no-print">
+                <ImageIcon className="h-12 w-12 mb-4" />
+                <h3 className="text-lg font-semibold">A4 Preview</h3>
+                <p className="text-sm max-w-xs mx-auto">Your photosheet layout will appear here. Adjust settings to generate a layout.</p>
+              </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 });
