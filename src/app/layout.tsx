@@ -5,12 +5,12 @@ import './globals.css';
 import { FirebaseClientProvider } from '@/firebase';
 import AppLayout from '@/components/app/app-layout';
 
-const APP_NAME = "Photosheet Maker";
+const APP_NAME = "SiRa Photosheet Maker";
 const APP_URL = "https://photosheet-maker.vercel.app";
-const APP_DEFAULT_TITLE = "Photosheet Maker | Create Passport Size Photos Online";
-const APP_TITLE_TEMPLATE = "%s | Photosheet Maker";
+const APP_DEFAULT_TITLE = "SiRa Photosheet Maker | Create Passport Size Photos Online";
+const APP_TITLE_TEMPLATE = "%s | SiRa Photosheet Maker";
 const APP_DESCRIPTION = "Easily create, customize, and print professional passport-size photos, ID photos, and visa photos online. Our ID Photo Maker is fast, free, and ready in seconds.";
-const OG_IMAGE_URL = `${APP_URL}/og-image.png`; // Assuming you'll create this image
+const OG_IMAGE_URL = `${APP_URL}/og-image.png`; // You should create this image in your public folder
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -19,44 +19,8 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
-  keywords: [
-    "Photo Sheet Maker",
-    "Passport Size Photo Online",
-    "ID Photo Maker",
-    "Online Photo Editor",
-    "passport photo",
-    "visa photo",
-    "id photo",
-    "photo printing",
-    "photo editor",
-    "passport size photo maker",
-    "create passport photo",
-    "free passport photo tool"
-  ],
-  authors: [{ name: "Photosheet Maker Team", url: APP_URL }],
-  creator: "Photosheet Maker Team",
-  publisher: "Photosheet Maker Team",
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(APP_URL),
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
-      { url: "/logo.png", sizes: "16x16", type: "image/png" },
-      { url: "/logo.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-touch-icon.png" }],
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -79,7 +43,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: "Photosheet Maker - Create Passport Photos Online",
+        alt: "SiRa Photosheet Maker - Create Passport Photos Online",
       },
     ],
   },
@@ -91,11 +55,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
     images: [OG_IMAGE_URL],
-    creator: "@YourTwitterHandle", // Replace with your actual Twitter handle
   },
-  other: {
-    "google-site-verification": "k4kWMniewMZF4Th5E85MuPIN-py8BXX_uWIuLPbu2Io",
-  }
 };
 
 export const viewport: Viewport = {
@@ -104,22 +64,9 @@ export const viewport: Viewport = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Photosheet Maker",
-  "operatingSystem": "WEB",
-  "applicationCategory": "MultimediaApplication",
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "1250"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  },
-  "description": "Create professional passport-size photos online instantly.",
-  "url": "https://photosheet-maker.vercel.app"
+  "@type": "WebSite",
+  "name": "SiRa Photosheet Maker",
+  "url": "https://photosheet-maker.vercel.app",
 };
 
 const inter = Inter({ 
@@ -136,7 +83,6 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <head>
-        <meta name="theme-color" content="#ADD8E6" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
