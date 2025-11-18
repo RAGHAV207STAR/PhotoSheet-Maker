@@ -36,7 +36,7 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
  * Initiates an addDoc operation for a collection reference.
  * Does NOT await the write operation internally.
  */
-export function addDocumentNonBlocking(colRef: CollectionReference, data: any): void {
+export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
   addDoc(colRef, data)
     .catch(error => {
       errorEmitter.emit(

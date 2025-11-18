@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ImagePreviewDialog } from '@/components/app/image-preview-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { GoogleSpinner } from '../ui/google-spinner';
 
 
 interface Photosheet {
@@ -252,11 +253,18 @@ const HistorySkeleton = () => (
 export function HistoryPageClient() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const { toast } = useToast();
 
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const lastSelectedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+        router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const photosheetsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -390,37 +398,11 @@ export function HistoryPageClient() {
   }, [selectionMode]);
 
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
-        <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 pb-20 md:pb-8">
-             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">History</h1>
-            </div>
-            <HistorySkeleton />
+        <div className="flex flex-col flex-1 bg-background items-center justify-center">
+             <GoogleSpinner />
       </div>
-    )
-  }
-
-  if (!user) {
-    return (
-       <div className="flex flex-col flex-1 items-center justify-center p-4 animate-gradient-shift bg-[length:200%_auto] bg-gradient-to-br from-cyan-100 via-blue-200 to-purple-200">
-         <Card className="w-full max-w-md text-center bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg">
-            <CardHeader className="items-center p-6 sm:p-8">
-                <div className="p-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 shadow-[0_4px_20px_rgba(3,105,161,0.3)] mb-4">
-                    <LogIn className="h-12 w-12 text-white" />
-                </div>
-                <CardTitle className="text-3xl font-extrabold tracking-tight">Access Your History</CardTitle>
-                <CardDescription className="text-foreground/80 text-base mt-2">Log in to view your saved photosheets and print them anytime.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 sm:p-8 pt-0">
-                <Button asChild className="w-full bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg transition-all" size="lg">
-                    <Link href="/login">
-                        Go to Login
-                    </Link>
-                </Button>
-            </CardContent>
-         </Card>
-       </div>
     )
   }
 

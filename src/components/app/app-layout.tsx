@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app/app-sidebar';
 import GoogleAnalytics from '@/components/app/google-analytics';
 import { LanguageProvider } from '@/context/language-context';
+import SessionValidator from "./session-validator";
 
 export default function AppLayout({
   children,
@@ -21,6 +22,7 @@ export default function AppLayout({
       <EditorProvider>
         <LanguageProvider>
           <SidebarProvider defaultOpen={false}>
+              <SessionValidator />
               <div className="group/sidebar-wrapper flex min-h-screen">
                   <AppSidebar />
                   <SidebarInset>

@@ -3,15 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, User, onAuthStateChanged } from 'firebase/auth';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
 import dynamic from 'next/dynamic';
 
@@ -26,166 +25,145 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 const LoginPageContent = () => {
     const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const auth = useAuth();
-  const firestore = useFirestore();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const handleSuccessfulLogin = async (user: User) => {
-    if (!firestore || !user) return;
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userData = {
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        lastSeen: serverTimestamp(),
-    };
+    const [password, setPassword] = useState('');
+    const [authActionLoading, setAuthActionLoading] = useState<null | 'login' | 'signup' | 'google'>(null);
     
-    // Non-blocking write with error handling. This will create or update the user profile.
-    setDocumentNonBlocking(userDocRef, userData, { merge: true });
-    
-    toast({ title: 'Success', description: 'Logged in successfully.' });
-    router.push('/');
-    setLoading(false);
-  };
+    const auth = useAuth();
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+    const { toast } = useToast();
 
-
-  useEffect(() => {
-    if (!auth) {
-        setIsAuthLoading(false);
-        return;
-    }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-            handleSuccessfulLogin(user);
-        } else {
-            setIsAuthLoading(false);
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            toast({ title: 'Success', description: 'Logged in successfully.' });
+            router.push('/');
         }
-    });
+    }, [user, isUserLoading, router, toast]);
 
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth]);
+    const handleAuthAction = async (action: 'login' | 'signup') => {
+        if (!auth) return;
+        setAuthActionLoading(action);
+        
+        const authPromise = action === 'login'
+            ? signInWithEmailAndPassword(auth, email, password)
+            : createUserWithEmailAndPassword(auth, email, password);
 
-  const handleAuthAction = async (action: 'login' | 'signup') => {
-    if (!auth) return;
-    setLoading(true);
-    
-    const authPromise = action === 'login'
-        ? signInWithEmailAndPassword(auth, email, password)
-        : createUserWithEmailAndPassword(auth, email, password);
-
-    authPromise.catch((error: any) => {
-        toast({
-            variant: 'destructive',
-            title: 'Authentication Failed',
-            description: error.message,
-        });
-        setLoading(false);
-    });
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!auth) return;
-    setLoading(true);
-    const provider = new GoogleAuthProvider();
-    
-    signInWithPopup(auth, provider).catch((error: any) => {
-        if (error.code !== 'auth/popup-closed-by-user') {
+        try {
+            await authPromise;
+            // The useEffect hook will handle the redirect on successful login
+        } catch (error: any) {
             toast({
-              variant: 'destructive',
-              title: 'Google Sign-In Failed',
-              description: error.message,
+                variant: 'destructive',
+                title: 'Authentication Failed',
+                description: error.message,
             });
+        } finally {
+            setAuthActionLoading(null);
         }
-        setLoading(false);
-    });
-  };
+    };
 
-  if (isAuthLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-100">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-            <GoogleSpinner />
-            <span className="font-semibold text-lg">Loading...</span>
-        </div>
-      </div>
-    )
-  }
+    const handleGoogleSignIn = async () => {
+        if (!auth) return;
+        setAuthActionLoading('google');
+        const provider = new GoogleAuthProvider();
+        
+        try {
+            await signInWithPopup(auth, provider);
+             // The useEffect hook will handle the redirect on successful login
+        } catch (error: any) {
+            if (error.code !== 'auth/popup-closed-by-user') {
+                toast({
+                  variant: 'destructive',
+                  title: 'Google Sign-In Failed',
+                  description: error.message,
+                });
+            }
+        } finally {
+            setAuthActionLoading(null);
+        }
+    };
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-cyan-100 via-blue-200 to-purple-200 animate-gradient-shift bg-[length:200%_auto]">
-      <Card className="w-full max-w-sm border-0 bg-white/50 backdrop-blur-lg shadow-2xl rounded-2xl">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600">
-            Welcome Back
-          </CardTitle>
-          <CardDescription>Sign in or create an account to continue</CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <form onSubmit={(e) => { e.preventDefault(); handleAuthAction('login'); }}>
-                  <div className="py-4">
-                      <div className="grid gap-4">
-                          <div className="grid gap-2">
-                              <Label htmlFor="email-login">Email</Label>
-                              <Input id="email-login" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                          </div>
-                          <div className="grid gap-2">
-                              <Label htmlFor="password-login">Password</Label>
-                              <Input id="password-login" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                          </div>
-                      </div>
-                  </div>
-                  <Button type="submit" className="w-full bg-slate-900 text-white hover:bg-slate-800" disabled={loading}>
-                    {loading ? 'Logging in...' : 'Login'}
-                  </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup">
-              <form onSubmit={(e) => { e.preventDefault(); handleAuthAction('signup'); }}>
-                  <div className="py-4">
-                      <div className="grid gap-4">
-                          <div className="grid gap-2">
-                              <Label htmlFor="email-signup">Email</Label>
-                              <Input id="email-signup" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                          </div>
-                          <div className="grid gap-2">
-                              <Label htmlFor="password-signup">Password</Label>
-                              <Input id="password-signup" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-                          </div>
-                      </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Signing up...' : 'Sign Up'}
-                  </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+    if (isUserLoading || (!isUserLoading && user)) {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-slate-50 to-blue-100">
+            <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                <GoogleSpinner />
+                <span className="font-semibold text-lg">{user ? 'Redirecting...' : 'Loading...'}</span>
             </div>
           </div>
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
-            <GoogleIcon className="mr-2 h-5 w-5" />
-            Google
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        )
+    }
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-cyan-100 via-blue-200 to-purple-200 animate-gradient-shift bg-[length:200%_auto]">
+        <Card className="w-full max-w-sm border-0 bg-white/50 backdrop-blur-lg shadow-2xl rounded-2xl">
+            <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600">
+                Welcome Back
+            </CardTitle>
+            <CardDescription>Sign in or create an account to continue</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+            <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                <TabsContent value="login">
+                <form onSubmit={(e) => { e.preventDefault(); handleAuthAction('login'); }}>
+                    <div className="py-4">
+                        <div className="grid gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email-login">Email</Label>
+                                <Input id="email-login" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!authActionLoading} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password-login">Password</Label>
+                                <Input id="password-login" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={!!authActionLoading} />
+                            </div>
+                        </div>
+                    </div>
+                    <Button type="submit" className="w-full bg-slate-900 text-white hover:bg-slate-800" disabled={!!authActionLoading}>
+                        {authActionLoading === 'login' ? 'Logging in...' : 'Login'}
+                    </Button>
+                </form>
+                </TabsContent>
+                <TabsContent value="signup">
+                <form onSubmit={(e) => { e.preventDefault(); handleAuthAction('signup'); }}>
+                    <div className="py-4">
+                        <div className="grid gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="email-signup">Email</Label>
+                                <Input id="email-signup" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!authActionLoading} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password-signup">Password</Label>
+                                <Input id="password-signup" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={!!authActionLoading} />
+                            </div>
+                        </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={!!authActionLoading}>
+                        {authActionLoading === 'signup' ? 'Signing up...' : 'Sign Up'}
+                    </Button>
+                </form>
+                </TabsContent>
+            </Tabs>
+            <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                </div>
+            </div>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!authActionLoading}>
+                {authActionLoading === 'google' ? <GoogleSpinner className='mr-2 h-5 w-5' /> : <GoogleIcon className="mr-2 h-5 w-5" />}
+                Google
+            </Button>
+            </CardContent>
+        </Card>
+        </div>
+    );
 }
 
 const LoginPage = dynamic(() => Promise.resolve(LoginPageContent), {
