@@ -65,7 +65,7 @@ export default function Home() {
         </main>
       
       <footer className="py-6 px-4 text-center text-sm w-full">
-        <p className="font-semibold text-blue-900/60">&copy; {new Date().getFullYear()} Photosheet Maker. All Rights Reserved.</p>
+        <p className="font-semibold text-blue-900/60">&copy; {new Date().getFullYear()} SiRa Editor. All Rights Reserved.</p>
       </footer>
     </div>
   );
