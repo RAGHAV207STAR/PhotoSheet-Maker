@@ -35,10 +35,9 @@ const LoginPageContent = () => {
 
     useEffect(() => {
         if (!isUserLoading && user) {
-            toast({ title: 'Success', description: 'Logged in successfully.' });
             router.push('/');
         }
-    }, [user, isUserLoading, router, toast]);
+    }, [user, isUserLoading, router]);
 
     const handleAuthAction = async (action: 'login' | 'signup') => {
         if (!auth) return;
@@ -66,6 +65,10 @@ const LoginPageContent = () => {
         if (!auth) return;
         setAuthActionLoading('google');
         const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          'login_hint': 'user@example.com',
+          'brand': 'SiRa Editor'
+        });
         
         try {
             await signInWithPopup(auth, provider);

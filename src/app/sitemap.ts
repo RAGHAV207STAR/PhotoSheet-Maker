@@ -2,7 +2,7 @@
 import { MetadataRoute } from 'next'
  
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://photosheet-maker.vercel.app";
+  const baseUrl = "https://siraeditor.vercel.app";
 
   return [
     {
