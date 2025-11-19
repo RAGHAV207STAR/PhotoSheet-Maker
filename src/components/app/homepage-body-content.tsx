@@ -134,7 +134,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                       Your All-in-One Photo Solution
                   </h2>
                   <p className="mt-4 text-lg text-slate-600">
-                      Welcome to Photosheet Maker, the simplest way to prepare photos for any occasion. Create print-ready passport, visa, and ID photos in seconds. No software, no sign-ups, no hassle.
+                      Welcome to SiRa Editor, the simplest way to prepare photos for any occasion. Create print-ready passport, visa, and ID photos in seconds. No software, no sign-ups, no hassle.
                   </p>
                   <p className="mt-2 text-lg text-slate-600">
                       Whether you need a sheet of official photos for your documents, our powerful online tools have you covered. The intuitive interface guides you through the process, from uploading images to customizing the final layout. Get professional results instantly.
@@ -142,7 +142,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
               </div>
   
               <div className="mt-12">
-                  <h3 className="text-3xl font-bold text-center mb-8 animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">Why Choose Photosheet Maker?</h3>
+                  <h3 className="text-3xl font-bold text-center mb-8 animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">Why Choose SiRa Editor?</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {features.map((feature, index) => (
                         <Card key={index} className="bg-white/70 backdrop-blur-sm border-white/20 shadow-lg hover:shadow-xl transition-shadow">
@@ -175,7 +175,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                       <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
                           <AccordionTrigger className="px-6 text-left">Is this passport size photo maker really free?</AccordionTrigger>
                           <AccordionContent className="px-6">
-                          Yes, absolutely! Photosheet Maker is a completely free tool. You can create and download as many photo sheets as you need without any charges.
+                          Yes, absolutely! SiRa Editor is a completely free tool. You can create and download as many photo sheets as you need without any charges.
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-3" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">

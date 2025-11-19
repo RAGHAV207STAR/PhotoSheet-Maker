@@ -85,7 +85,7 @@ function ClientHomepageHeader() {
 
       <div className="relative flex-grow flex flex-col items-center justify-center text-center p-4">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.5)' }}>
-          Photosheet
+          SiRa Editor
         </h1>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
             <Badge variant="secondary" className="bg-white/30 backdrop-blur-sm text-white border-white/20">Passport Photos</Badge>

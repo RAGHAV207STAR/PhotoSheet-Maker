@@ -21,7 +21,7 @@ function ClientAppSidebar() {
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <Link href="/" className="font-headline text-3xl">
-          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
+          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">SiRa Editor</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -58,7 +58,7 @@ export default function AppSidebar() {
       <Sidebar collapsible="offcanvas">
         <SidebarHeader>
           <Link href="/" className="font-headline text-3xl">
-            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
+            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">SiRa Editor</span>
           </Link>
         </SidebarHeader>
       </Sidebar>

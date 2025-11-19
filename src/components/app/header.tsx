@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -33,7 +34,7 @@ function ClientHeader() {
       <div className="flex items-center gap-2 sm:gap-4">
         <SidebarTrigger className="flex" />
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">Photosheet Maker</span>
+          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">SiRa Editor</span>
         </Link>
       </div>
 
