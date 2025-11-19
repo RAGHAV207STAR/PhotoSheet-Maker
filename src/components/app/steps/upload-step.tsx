@@ -6,13 +6,11 @@ import Image from 'next/image';
 import { useEditor, ImageWithDimensions } from '@/context/editor-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Image as ImageIcon, ArrowRight, Trash2, Camera } from 'lucide-react';
+import { Upload, Image as ImageIcon, ArrowRight, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import CameraCapture from '../camera-capture';
 
 interface UploadStepProps {
   onContinue: () => void;
@@ -128,14 +126,6 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
     setIsDragging(false);
   };
 
-  const handleCapture = (dataUrl: string) => {
-    const img = document.createElement('img');
-    img.onload = () => {
-        setImages(prev => [...prev, { src: dataUrl, width: img.width, height: img.height }]);
-    };
-    img.src = dataUrl;
-  };
-
   const triggerUpload = () => {
     inputRef.current?.click();
   };
@@ -231,41 +221,28 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
                                 <CardDescription className="text-base">{description}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Tabs defaultValue="upload" className="w-full">
-                                    <TabsList className="grid w-full grid-cols-2">
-                                        <TabsTrigger value="upload"><Upload className="mr-2 h-4 w-4"/>Upload File</TabsTrigger>
-                                        <TabsTrigger value="camera"><Camera className="mr-2 h-4 w-4"/>Use Camera</TabsTrigger>
-                                    </TabsList>
-                                    <TabsContent value="upload">
-                                        <div 
-                                            onClick={triggerUpload}
-                                            className="cursor-pointer group mt-4 border-2 border-dashed border-gray-300 group-hover:border-primary transition-colors duration-300 rounded-lg"
+                                <div 
+                                    onClick={triggerUpload}
+                                    className="cursor-pointer group mt-4 border-2 border-dashed border-gray-300 group-hover:border-primary transition-colors duration-300 rounded-lg"
+                                >
+                                    <div className="text-center text-muted-foreground p-4 flex flex-col items-center gap-4 aspect-video sm:aspect-[2/1] lg:aspect-[3/1] justify-center">
+                                        <motion.div
+                                            whileHover={{ scale: 1.1 }}
+                                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                                            className='border-2 border-dashed border-gray-300 rounded-full p-4 sm:p-6 group-hover:border-primary group-hover:text-primary transition-colors'
                                         >
-                                            <div className="text-center text-muted-foreground p-4 flex flex-col items-center gap-4 aspect-video sm:aspect-[2/1] lg:aspect-[3/1] justify-center">
-                                                <motion.div
-                                                    whileHover={{ scale: 1.1 }}
-                                                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                                                    className='border-2 border-dashed border-gray-300 rounded-full p-4 sm:p-6 group-hover:border-primary group-hover:text-primary transition-colors'
-                                                >
-                                                    <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12" />
-                                                </motion.div>
-                                                <div className='flex flex-col gap-2 items-center'>
-                                                    <span className="font-semibold text-base sm:text-lg text-slate-700">Click or Drag & Drop to Upload</span>
-                                                    <p className='text-xs sm:text-sm'>or</p>
-                                                    <Button onClick={(e) => { e.stopPropagation(); triggerUpload(); }} variant="ghost" size="sm">
-                                                        <Upload className="mr-2 h-4 w-4" /> Select from Device
-                                                    </Button>
-                                                </div>
-                                                <p className="text-xs mt-2">Supports JPG, PNG, WEBP.</p>
-                                            </div>
+                                            <ImageIcon className="h-10 w-10 sm:h-12 sm:w-12" />
+                                        </motion.div>
+                                        <div className='flex flex-col gap-2 items-center'>
+                                            <span className="font-semibold text-base sm:text-lg text-slate-700">Click or Drag & Drop to Upload</span>
+                                            <p className='text-xs sm:text-sm'>or</p>
+                                            <Button onClick={(e) => { e.stopPropagation(); triggerUpload(); }} variant="ghost" size="sm">
+                                                <Upload className="mr-2 h-4 w-4" /> Select from Device
+                                            </Button>
                                         </div>
-                                    </TabsContent>
-                                    <TabsContent value="camera">
-                                        <div className="mt-4 border rounded-lg overflow-hidden">
-                                          <CameraCapture onCapture={handleCapture} />
-                                        </div>
-                                    </TabsContent>
-                                </Tabs>
+                                        <p className="text-xs mt-2">Supports JPG, PNG, WEBP.</p>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </motion.div>
