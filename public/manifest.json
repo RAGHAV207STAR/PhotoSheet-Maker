@@ -4,8 +4,8 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "name": "Photosheet Maker",
-  "short_name": "Photosheet",
+  "name": "SiRa Editor",
+  "short_name": "SiRa",
   "description": "Easily create and print photosheets for passports, visas, and IDs.",
   "icons": [
     {
