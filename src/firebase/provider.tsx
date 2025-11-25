@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -111,46 +112,65 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   );
 };
 
+// Overload for useFirebase to handle the optional parameter
+export function useFirebase(optional: true): Partial<FirebaseServicesAndUser>;
+export function useFirebase(): FirebaseServicesAndUser;
+
 /**
  * Hook to access core Firebase services and user authentication state.
- * Throws error if core services are not available or used outside provider.
+ * Throws error if core services are not available or used outside provider, unless optional is true.
  */
-export const useFirebase = (): FirebaseServicesAndUser => {
+export function useFirebase(optional: boolean = false): Partial<FirebaseServicesAndUser> {
   const context = useContext(FirebaseContext);
 
   if (context === undefined) {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
 
-  if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth) {
+  if (!optional && (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth)) {
     throw new Error('Firebase core services not available. Check FirebaseProvider props.');
   }
 
   return {
-    firebaseApp: context.firebaseApp,
-    firestore: context.firestore,
-    auth: context.auth,
+    firebaseApp: context.firebaseApp ?? undefined,
+    firestore: context.firestore ?? undefined,
+    auth: context.auth ?? undefined,
     user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
 };
 
+export function useAuth(optional: true): Auth | undefined;
+export function useAuth(): Auth;
 /** Hook to access Firebase Auth instance. */
-export const useAuth = (): Auth => {
-  const { auth } = useFirebase();
+export function useAuth(optional: boolean = false): Auth | undefined {
+  const { auth } = useFirebase(true);
+  if (!optional && !auth) {
+    throw new Error('Auth service not available. Check FirebaseProvider props.');
+  }
   return auth;
 };
 
+export function useFirestore(optional: true): Firestore | undefined;
+export function useFirestore(): Firestore;
 /** Hook to access Firestore instance. */
-export const useFirestore = (): Firestore => {
-  const { firestore } = useFirebase();
+export function useFirestore(optional: boolean = false): Firestore | undefined {
+  const { firestore } = useFirebase(true);
+  if (!optional && !firestore) {
+    throw new Error('Firestore service not available. Check FirebaseProvider props.');
+  }
   return firestore;
 };
 
+export function useFirebaseApp(optional: true): FirebaseApp | undefined;
+export function useFirebaseApp(): FirebaseApp;
 /** Hook to access Firebase App instance. */
-export const useFirebaseApp = (): FirebaseApp => {
-  const { firebaseApp } = useFirebase();
+export function useFirebaseApp(optional: boolean = false): FirebaseApp | undefined {
+  const { firebaseApp } = useFirebase(true);
+  if (!optional && !firebaseApp) {
+    throw new Error('FirebaseApp not available. Check FirebaseProvider props.');
+  }
   return firebaseApp;
 };
 
@@ -165,12 +185,14 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   return memoized;
 }
 
+export function useUser(optional: true): UserHookResult;
+export function useUser(): UserHookResult;
 /**
  * Hook specifically for accessing the authenticated user's state.
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
+export function useUser(optional: boolean = false): UserHookResult {
+  const { user, isUserLoading, userError } = useFirebase(true);
   return { user, isUserLoading, userError };
 };
