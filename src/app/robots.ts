@@ -3,6 +3,7 @@ import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const sitemapUrl = "https://siraeditor.vercel.app/sitemap.xml";
+  const hostUrl = "https://siraeditor.vercel.app";
 
   return {
     rules: [
@@ -24,6 +25,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: sitemapUrl,
-    host: "https://siraeditor.vercel.app",
+    host: hostUrl,
   };
 }

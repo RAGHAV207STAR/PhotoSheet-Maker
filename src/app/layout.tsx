@@ -7,34 +7,31 @@ import AppLayout from '@/components/app/app-layout';
 
 const APP_NAME = "SiRa Editor";
 const APP_URL = "https://siraeditor.vercel.app";
-const APP_DEFAULT_TITLE = "SiRa Editor | Create Passport Size Photos Online";
-const APP_TITLE_TEMPLATE = "%s | SiRa Editor";
-const APP_DESCRIPTION = "Easily create, customize, and print professional passport-size photos, ID photos, and visa photos online. Our ID Photo Maker is fast, free, and ready in seconds.";
-const OG_IMAGE_URL = `${APP_URL}/og-image.png`; // You should create this image in your public folder
+const APP_DESCRIPTION = "SiRa Editor is a fast and professional online photo sheet maker, collage creator, and image editor. Create HD photo sheets, passport photos, layouts, and collages instantly.";
+const OG_IMAGE_URL = `${APP_URL}/og-image.png`;
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
   title: {
-    default: APP_DEFAULT_TITLE,
-    template: APP_TITLE_TEMPLATE,
+    default: "SiRa Editor – Photo Sheet Maker & Online Collage Creator",
+    template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
-  manifest: "/manifest.webmanifest",
+  keywords: ["Photo Editor", "SiRa Editor", "Photo Sheet Maker", "Collage Maker", "Passport Photo", "Online Editor", "HD Photo Maker", "Layout Creator"],
+  
   metadataBase: new URL(APP_URL),
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: APP_DEFAULT_TITLE,
+  alternates: {
+    canonical: "/",
   },
-  formatDetection: {
-    telephone: false,
-  },
+  
+  manifest: "/manifest.json",
+  
   openGraph: {
     type: "website",
     siteName: APP_NAME,
     title: {
-      default: APP_DEFAULT_TITLE,
-      template: APP_TITLE_TEMPLATE,
+      default: "SiRa Editor – Online Photo Editor",
+      template: `%s | ${APP_NAME}`,
     },
     description: APP_DESCRIPTION,
     url: APP_URL,
@@ -43,33 +40,81 @@ export const metadata: Metadata = {
         url: OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: "SiRa Editor - Create Passport Photos Online",
+        alt: "SiRa Editor - Photo Sheet & Collage Maker",
       },
     ],
+    locale: "en_US",
   },
+  
   twitter: {
     card: "summary_large_image",
     title: {
-      default: APP_DEFAULT_TITLE,
-      template: APP_TITLE_TEMPLATE,
+      default: "SiRa Editor – Photo Sheet Maker",
+      template: `%s | ${APP_NAME}`,
     },
     description: APP_DESCRIPTION,
+    creator: "@siraeditor",
     images: [OG_IMAGE_URL],
   },
-  verification: {
-    google: '-30ujEIjJeOl-kZGiqqXrZWLlCrcZ3d6dI1SLSKmd7o',
+  
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
   },
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_NAME,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  
+  other: {
+    "google-site-verification": "-30ujEIjJeOl-kZGiqqXrZWLlCrcZ3d6dI1SLSKmd7o",
+  }
 };
 
 export const viewport: Viewport = {
-  themeColor: '#ADD8E6',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+  ],
+  colorScheme: 'light dark',
 };
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "SiRa Editor",
-  "url": "https://siraeditor.vercel.app",
+  "@type": "WebApplication",
+  "name": APP_NAME,
+  "url": APP_URL,
+  "logo": `${APP_URL}/icon-512.png`,
+  "description": APP_DESCRIPTION,
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "All",
+  "browserRequirements": "Requires HTML5 support, JavaScript enabled.",
+  "releaseNotes": "https://siraeditor.vercel.app/",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "creator": {
+    "@type": "Organization",
+    "name": "SiRa Editor",
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${APP_URL}/icon-512.png`
+    }
+  }
 };
 
 const inter = Inter({ 
@@ -91,6 +136,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <meta name="msapplication-TileColor" content="#000000" />
       </head>
       <body className={`font-body antialiased`}>
         <FirebaseClientProvider>

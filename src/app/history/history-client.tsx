@@ -2,8 +2,8 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, Timestamp, doc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, Timestamp, doc, writeBatch } from 'firebase/firestore';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ImagePreviewDialog } from '@/components/app/image-preview-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 
 interface Photosheet {
@@ -36,7 +37,7 @@ interface HistoryItemProps {
     isSelected: boolean;
     onToggleSelect: (id: string, isShiftClick: boolean) => void;
     setSelectionMode: (mode: boolean) => void;
-    handleDelete: (id: string) => Promise<void>;
+    handleDelete: (id: string) => void;
 }
 
 function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSelectionMode, handleDelete }: HistoryItemProps) {
@@ -51,26 +52,20 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
     const date = sheet.createdAt ? sheet.createdAt.toDate() : new Date();
     const thumbnailUrl = sheet.thumbnailUrl || '';
 
-    const confirmDelete = async (e: React.MouseEvent) => {
+    const confirmDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        await handleDelete(sheet.id);
+        handleDelete(sheet.id);
         setIsDeleteDialogOpen(false);
     };
 
     const handlePointerDown = () => {
+        if (isMobile) return; // Disable long press on mobile
         didLongPress.current = false;
         pressTimer.current = setTimeout(() => {
             didLongPress.current = true;
-            if (isMobile) {
-                if (!selectionMode) {
-                    setSelectionMode(true);
-                    onToggleSelect(sheet.id, false);
-                }
-            } else {
-                 if (!selectionMode) {
-                    setSelectionMode(true);
-                    onToggleSelect(sheet.id, false);
-                }
+            if (!selectionMode) {
+                setSelectionMode(true);
+                onToggleSelect(sheet.id, false);
             }
         }, 500); // 500ms for a long press
     };
@@ -90,14 +85,8 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
         if (selectionMode) {
             onToggleSelect(sheet.id, e.shiftKey);
         } else {
-            if (!isMobile) {
-                // On desktop, a single click enters selection mode and selects the item
-                setSelectionMode(true);
-                onToggleSelect(sheet.id, false);
-            } else {
-                // On mobile, a single tap opens the preview
-                setIsPreviewOpen(true);
-            }
+            // On both mobile and desktop, a single click now opens the preview
+            setIsPreviewOpen(true);
         }
     };
 
@@ -147,7 +136,7 @@ function HistoryItem({ sheet, selectionMode, isSelected, onToggleSelect, setSele
                                 <Checkbox
                                     checked={isSelected}
                                     className="h-5 w-5"
-                                    aria-label="Select photosheet"
+                                    aria-label="Select item"
                                 />
                             </div>
                         )}
@@ -330,25 +319,17 @@ export function HistoryPageClient() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!firestore || !user) return;
-    try {
-        await deleteDoc(doc(firestore, 'users', user.uid, 'photosheets', id));
-        toast({
-            title: "Photosheet Deleted",
-            variant: "destructive"
-        });
-    } catch (e) {
-        console.error(e);
-        toast({
-            variant: "destructive",
-            title: "Deletion Failed",
-            description: "Could not delete the photosheet. Please try again."
-        });
-    }
+    deleteDocumentNonBlocking(doc(firestore, 'users', user.uid, 'photosheets', id));
+    toast({
+        title: "Deletion Initiated",
+        description: "The item will be removed shortly.",
+        variant: "destructive"
+    });
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (!firestore || !user || selectedIds.size === 0) return;
 
     const batch = writeBatch(firestore);
@@ -357,22 +338,21 @@ export function HistoryPageClient() {
       batch.delete(docRef);
     });
 
-    try {
-      await batch.commit();
-      toast({
-        title: `${selectedIds.size} Photosheet(s) Permanently Deleted`,
-        variant: 'destructive'
+    batch.commit()
+      .then(() => {
+        toast({
+            title: `${selectedIds.size} Item(s) Permanently Deleted`,
+            variant: 'destructive'
+        });
+        setSelectedIds(new Set());
+        setSelectionMode(false);
+      })
+      .catch(() => {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `users/${user.uid}/photosheets`,
+            operation: 'delete',
+         }));
       });
-      setSelectedIds(new Set());
-      setSelectionMode(false);
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Action Failed',
-        description: 'An error occurred during bulk deletion.',
-      });
-    }
   };
 
   const handleBulkAction = (action: 'print' | 'download') => {
@@ -393,8 +373,8 @@ export function HistoryPageClient() {
   if (isUserLoading) {
     return (
         <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 pb-20 md:pb-8">
-             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">History</h1>
+             <div className="flex justify-between items-center mb-8">
+                <Skeleton className="h-10 w-48" />
             </div>
             <HistorySkeleton />
       </div>
@@ -403,10 +383,10 @@ export function HistoryPageClient() {
 
   if (!user) {
     return (
-       <div className="flex flex-col flex-1 items-center justify-center p-4 animate-gradient-shift bg-[length:200%_auto] bg-gradient-to-br from-cyan-100 via-blue-200 to-purple-200">
+       <div className="flex flex-col flex-1 items-center justify-center p-4 animate-gradient-shift bg-[length:200%_auto] bg-gradient-to-br from-blue-100 via-sky-100 to-blue-200">
          <Card className="w-full max-w-md text-center bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg">
             <CardHeader className="items-center p-6 sm:p-8">
-                <div className="p-4 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 shadow-[0_4px_20px_rgba(3,105,161,0.3)] mb-4">
+                <div className="p-4 rounded-full bg-gradient-to-br from-primary to-accent shadow-[0_4px_20px_rgba(3,105,161,0.3)] mb-4">
                     <LogIn className="h-12 w-12 text-white" />
                 </div>
                 <CardTitle className="text-3xl font-extrabold tracking-tight">Access Your History</CardTitle>
@@ -429,7 +409,7 @@ export function HistoryPageClient() {
   return (
     <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 pb-32 md:pb-8">
         <div className="flex justify-between items-center mb-8">
-            <h1 className={cn("animate-gradient-shift bg-[length:200%_auto] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 transition-all",
+            <h1 className={cn("animate-gradient-shift bg-[length:200%_auto] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-600 transition-all",
                 selectionMode ? 'text-2xl' : 'text-4xl'
             )}>
                 {selectionMode ? `Selected ${selectedIds.size} item(s)` : 'History'}
@@ -551,10 +531,10 @@ export function HistoryPageClient() {
             <div className="flex-grow flex flex-col items-center justify-center text-center -mt-16">
                 <HistoryIcon className="h-16 w-16 text-muted-foreground mb-4" />
                 <h2 className="text-2xl font-bold">No History Yet</h2>
-                <p className="text-muted-foreground max-w-xs">Your generated photosheets will appear here.</p>
+                <p className="text-muted-foreground max-w-xs">Your generated items will appear here.</p>
                 <Button asChild size="lg" className="mt-6">
                     <Link href="/">
-                        Create a Photosheet
+                        Create a New Sheet
                     </Link>
                 </Button>
             </div>
@@ -562,5 +542,3 @@ export function HistoryPageClient() {
     </div>
   );
 }
-
-    

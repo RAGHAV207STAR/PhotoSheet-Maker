@@ -98,10 +98,10 @@ const LoginPageContent = () => {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-cyan-100 via-blue-200 to-purple-200 animate-gradient-shift bg-[length:200%_auto]">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-100 via-sky-100 to-blue-200 animate-gradient-shift bg-[length:200%_auto]">
         <Card className="w-full max-w-sm border-0 bg-white/50 backdrop-blur-lg shadow-2xl rounded-2xl">
             <CardHeader className="text-center space-y-2">
-            <CardTitle className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600">
+            <CardTitle className="text-3xl font-extrabold tracking-tight animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-600">
                 Welcome Back
             </CardTitle>
             <CardDescription>Sign in or create an account to continue</CardDescription>

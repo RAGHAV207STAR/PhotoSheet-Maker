@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronRight, Edit, LogOut, User as UserIcon, Loader2, History } from "lucide-react";
+import { ChevronRight, Edit, LogOut, User as UserIcon, Loader2, History, LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser, useAuth } from "@/firebase";
 import { signOut, updateProfile } from "firebase/auth";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleSpinner } from "@/components/ui/google-spinner";
 import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProfilePageContent = () => {
     const router = useRouter();
@@ -29,10 +30,10 @@ const ProfilePageContent = () => {
     const [displayName, setDisplayName] = useState(user?.displayName || '');
   
     useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login');
+        if (user) {
+            setDisplayName(user.displayName || '');
         }
-    }, [user, isUserLoading, router]);
+    }, [user]);
 
     const handleLogout = async () => {
       if (!auth) return;
@@ -75,18 +76,61 @@ const ProfilePageContent = () => {
       }
     };
   
-    if (isUserLoading || !user) {
+    if (isUserLoading) {
       return (
-        <div className="flex flex-col flex-1 bg-background items-center justify-center">
-          <GoogleSpinner />
+        <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 justify-center items-center">
+            <div className="w-full max-w-lg">
+                <Skeleton className="h-10 w-48 mx-auto mb-8" />
+                <Card>
+                    <CardHeader className="items-center text-center">
+                        <Skeleton className="w-24 h-24 rounded-full" />
+                        <Skeleton className="h-8 w-40 mt-2" />
+                        <Skeleton className="h-4 w-56 mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                        <Separator />
+                        <div className="py-4 space-y-2">
+                           <Skeleton className="h-12 w-full" />
+                           <Skeleton className="h-12 w-full" />
+                        </div>
+                        <Separator />
+                        <div className="pt-4">
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       );
+    }
+
+    if (!user) {
+        return (
+            <div className="flex flex-col flex-1 items-center justify-center p-4 animate-gradient-shift bg-[length:200%_auto] bg-gradient-to-br from-blue-100 via-sky-100 to-blue-200">
+                <Card className="w-full max-w-md text-center bg-white/30 backdrop-blur-lg border border-white/20 shadow-lg">
+                    <CardHeader className="items-center p-6 sm:p-8">
+                        <div className="p-4 rounded-full bg-gradient-to-br from-primary to-accent shadow-[0_4px_20px_rgba(3,105,161,0.3)] mb-4">
+                            <LogIn className="h-12 w-12 text-white" />
+                        </div>
+                        <CardTitle className="text-3xl font-extrabold tracking-tight">Access Your Profile</CardTitle>
+                        <CardDescription className="text-foreground/80 text-base mt-2">Log in to view and manage your profile information.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6 sm:p-8 pt-0">
+                        <Button asChild className="w-full bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg transition-all" size="lg">
+                            <Link href="/login">
+                                Go to Login
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
   
     return (
       <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 justify-center items-center">
           <div className="w-full max-w-lg">
-              <h1 className="animate-gradient-shift bg-[length:200%_auto] text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 mb-8 text-center">Your Profile</h1>
+              <h1 className="animate-gradient-shift bg-[length:200%_auto] text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-600 mb-8 text-center">Your Profile</h1>
               <Card>
                   <CardHeader className="items-center text-center">
                       <Avatar className="w-24 h-24 mb-2 border-4 border-primary/20">
@@ -164,9 +208,29 @@ const ProfilePageContent = () => {
 };
 
 const ProfilePage = dynamic(() => Promise.resolve(ProfilePageContent), {
-    loading: () => <div className="flex flex-col flex-1 bg-background items-center justify-center">
-        <GoogleSpinner />
-    </div>,
+    loading: () => <div className="flex flex-col flex-1 bg-background p-4 sm:p-6 md:p-8 justify-center items-center">
+            <div className="w-full max-w-lg">
+                <Skeleton className="h-10 w-48 mx-auto mb-8" />
+                <Card>
+                    <CardHeader className="items-center text-center">
+                        <Skeleton className="w-24 h-24 rounded-full" />
+                        <Skeleton className="h-8 w-40 mt-2" />
+                        <Skeleton className="h-4 w-56 mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                        <Separator />
+                        <div className="py-4 space-y-2">
+                           <Skeleton className="h-12 w-full" />
+                           <Skeleton className="h-12 w-full" />
+                        </div>
+                        <Separator />
+                        <div className="pt-4">
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>,
     ssr: false,
 });
 
