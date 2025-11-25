@@ -33,7 +33,7 @@ function ClientHomepageHeader() {
             <div className="h-10 w-10" />
           ) : (
             <Link href={user ? "/profile" : "/login"}>
-              <div className="rounded-full p-0.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
+              <div className="rounded-full p-0.5 bg-gradient-to-r from-primary via-accent to-blue-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
                 <Avatar className="h-10 w-10 border-2 border-transparent">
                   {user ? <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} /> : null}
                   <AvatarFallback className="bg-background/80">
@@ -52,7 +52,7 @@ function ClientHomepageHeader() {
                 <div className="h-10 w-10" />
             ) : (
                 <Link href={user ? "/profile" : "/login"}>
-                    <div className="rounded-full p-0.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
+                    <div className="rounded-full p-0.5 bg-gradient-to-r from-primary via-accent to-blue-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
                         <Avatar className="h-10 w-10 border-2 border-transparent">
                         {user ? <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} /> : null}
                         <AvatarFallback className="bg-background/80">

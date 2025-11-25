@@ -6,21 +6,52 @@ import Image from 'next/image';
 import { useEditor, ImageWithDimensions } from '@/context/editor-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Image as ImageIcon, ArrowRight, Trash2 } from 'lucide-react';
+import { Upload, Image as ImageIcon, ArrowRight, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDraggable } from '@dnd-kit/core';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface UploadStepProps {
   onContinue: () => void;
+  onBack: () => void;
 }
 
-const MAX_IMAGES = 100;
-const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
+
+const DraggableUploadedImage = ({ img, onRemove }: { img: ImageWithDimensions; onRemove: () => void }) => {
+    const { attributes, listeners, setNodeRef } = useDraggable({
+        id: img.src,
+        data: {
+            isFromUploadedList: true,
+        }
+    });
+
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="relative w-24 h-24 aspect-square group shadow-md rounded-lg overflow-hidden bg-slate-200 flex-shrink-0"
+        >
+            <div ref={setNodeRef} {...listeners} {...attributes} className="w-full h-full cursor-grab touch-none">
+                <Image src={img.src} alt={`Uploaded photo`} fill className="object-cover" sizes="100px" />
+            </div>
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                <Button size="icon" variant="destructive" className="h-8 w-8" onClick={onRemove}>
+                    <Trash2 className="h-4 w-4"/>
+                </Button>
+            </div>
+        </motion.div>
+    );
+};
 
 
-export default function UploadStep({ onContinue }: UploadStepProps) {
+export default function UploadStep({ onContinue, onBack }: UploadStepProps) {
   const { images, setImages } = useEditor();
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,20 +109,9 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
 
   const handleFiles = async (files: FileList) => {
     if (files.length === 0) return;
-
-    const totalAfterAdd = images.length + files.length;
-    if (totalAfterAdd > MAX_IMAGES) {
-        toast({
-            title: "Maximum Images Reached",
-            description: `You can select a maximum of ${MAX_IMAGES} photos. You tried to add ${files.length} but only ${MAX_IMAGES - images.length} spots are left.`,
-            variant: "destructive",
-        });
-    }
-
-    const filesToProcess = Array.from(files).slice(0, MAX_IMAGES - images.length);
     
-    const imagePromises = filesToProcess.map(processFile);
-    const newImages = (await Promise.all(imagePromises)).filter((img): img is ImageWithDimensions => img !== null);
+    const newImagesPromises = Array.from(files).map(processFile);
+    const newImages = (await Promise.all(newImagesPromises)).filter((img): img is ImageWithDimensions => img !== null);
 
     if (newImages.length > 0) {
       setImages(prev => [...prev, ...newImages]);
@@ -130,12 +150,12 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
     inputRef.current?.click();
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeImage = (srcToRemove: string) => {
+    setImages(prev => prev.filter(img => img.src !== srcToRemove));
   }
 
-  const title = 'Upload Your Photo(s)';
-  const description = `You can upload multiple photos to appear on the sheet.`;
+  const title = 'Upload Your Photos';
+  const description = `Select one or more clear, well-lit photos for your sheet.`;
 
   const hasImages = images.length > 0;
 
@@ -168,44 +188,21 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
                             <CardDescription className="text-base">{description}</CardDescription>
                             </CardHeader>
                         </Card>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                        <AnimatePresence>
-                            {images.map((img, index) => (
-                            <motion.div 
-                                key={img.src.slice(0, 50) + index}
-                                layout
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                className="relative aspect-square group shadow-md rounded-lg overflow-hidden"
-                            >
-                                <Image src={img.src} alt={`Uploaded photo ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, 20vw" />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                                    <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => removeImage(index)}>
-                                        <Trash2 className="h-4 w-4"/>
-                                    </Button>
-                                </div>
-                            </motion.div>
-                            ))}
-                        </AnimatePresence>
-                        {images.length < MAX_IMAGES && (
-                            <motion.div
-                                layout
-                                onClick={triggerUpload}
-                                className="relative aspect-square group shadow-md rounded-lg overflow-hidden border-2 border-dashed border-slate-300 bg-slate-100 hover:border-primary hover:bg-slate-200/60 transition-all flex items-center justify-center cursor-pointer"
-                            >
-                                <div className="text-center text-slate-600 p-2">
-                                    <motion.div
-                                        whileHover={{ scale: 1.1, y: -2 }}
-                                        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                                    >
-                                        <Upload className="h-8 w-8 mx-auto" />
-                                    </motion.div>
-                                    <p className="text-sm font-semibold mt-1">Add More</p>
-                                </div>
-                            </motion.div>
-                        )}
+                        <div className="flex flex-col items-center gap-4">
+                           <ScrollArea className="w-full">
+                               <div className="flex items-center gap-4 p-4 justify-center">
+                                    <AnimatePresence>
+                                        {images.map((img) => (
+                                            <DraggableUploadedImage key={img.src} img={img} onRemove={() => removeImage(img.src)} />
+                                        ))}
+                                    </AnimatePresence>
+                               </div>
+                               <ScrollBar orientation="horizontal" />
+                           </ScrollArea>
+                            <Button onClick={triggerUpload} variant="outline">
+                                <Upload className="mr-2 h-4 w-4" />
+                                Add More Photos
+                            </Button>
                         </div>
                     </motion.div>
                 ) : (
@@ -252,24 +249,17 @@ export default function UploadStep({ onContinue }: UploadStepProps) {
         </div>
       </main>
       <footer className="bg-background/80 backdrop-blur-sm border-t p-4 fixed bottom-0 left-0 right-0 z-10 no-print">
-        <div className="w-full max-w-lg mx-auto">
-            {hasImages ? (
-                <div className="grid grid-cols-1 gap-4">
-                    <Button onClick={onContinue} className="w-full flex bg-slate-900 text-white hover:bg-slate-800" size="lg" disabled={!hasImages}>
-                        Generate Sheet
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            ) : (
-                <Button onClick={triggerUpload} className="w-full flex" size="lg">
-                    <Upload className="mr-2 h-4 w-4"/>
-                    Upload Photo(s)
-                </Button>
-            )}
+        <div className="w-full max-w-lg mx-auto flex flex-col sm:flex-row gap-2">
+            <Button onClick={onBack} variant="outline" className="w-full" size="lg">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+            </Button>
+            <Button onClick={onContinue} className="w-full bg-slate-900 text-white hover:bg-slate-800" size="lg" disabled={!hasImages}>
+                Page Setup
+                <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
         </div>
       </footer>
     </div>
   );
 }
-
-    

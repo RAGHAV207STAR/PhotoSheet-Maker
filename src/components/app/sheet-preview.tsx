@@ -3,79 +3,177 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, RotateCw, Shrink, Expand } from 'lucide-react';
 import type { Photo } from '@/context/editor-context';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useEditor } from '@/context/editor-context';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PhotoItemProps {
   photo: Photo;
-  index: number;
   borderWidth: number;
-  isDragging: boolean;
-  isDropTarget: boolean;
-  handleDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-  handleDragEnd: () => void;
-  handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
-  handleDragEnter: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-  handleDragLeave: () => void;
-  handleDrop: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
-  handleTouchStart: (e: React.TouchEvent<HTMLDivElement>, index: number) => void;
-  handleTouchMove: (e: React.TouchEvent<HTMLDivElement>) => void;
-  handleTouchEnd: () => void;
+  borderColor: string;
+  isDragging?: boolean;
 }
 
-const PhotoItem = ({ 
+export function PhotoItem({ 
   photo, 
-  index, 
   borderWidth,
+  borderColor,
   isDragging,
-  isDropTarget,
-  handleDragStart,
-  handleDragEnd,
-  handleDragOver,
-  handleDragEnter,
-  handleDragLeave,
-  handleDrop,
-  handleTouchStart,
-  handleTouchMove,
-  handleTouchEnd,
-}: PhotoItemProps) => {
+}: PhotoItemProps) {
+
+  const { rotatePhoto, togglePhotoFit, selectedPhotoId, setSelectedPhotoId } = useEditor();
+  const isSelected = selectedPhotoId === photo.id;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isOver,
+  } = useSortable({
+      id: photo.id,
+      data: {
+          type: 'photo',
+          photo,
+      }
+  });
+
+  const style: React.CSSProperties = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      position: 'absolute',
+      left: `${photo.x}%`,
+      top: `${photo.y}%`,
+      width: `${photo.width}%`,
+      height: `${photo.height}%`,
+      opacity: isDragging ? 0.5 : 1,
+  };
+
+  const textVerticalAlignClass = {
+    'top': 'justify-start',
+    'middle': 'justify-center',
+    'bottom': 'justify-end'
+  }[photo.textVerticalAlign];
+
+  const textAlignClass = {
+    'left': 'text-left',
+    'center': 'text-center',
+    'right': 'text-right'
+  }[photo.textAlign];
+
+  const handleRotate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    rotatePhoto(photo.id);
+  }
+
+  const handleToggleFit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePhotoFit(photo.id);
+  }
+
+  const handleSelect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPhotoId(photo.id);
+  };
+
 
   return (
     <div
-      data-photo-index={index}
-      style={{
-        position: 'absolute',
-        left: `${photo.x}%`,
-        top: `${photo.y}%`,
-        width: `${photo.width}%`,
-        height: `${photo.height}%`,
-        opacity: isDragging ? 0.5 : 1,
-      }}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      data-photo-id={photo.id}
       className={cn(
-          'photo-item', 
-          isDropTarget && 'drag-over',
-          !photo.imageSrc && 'placeholder-wrapper'
+          'photo-item group', 
+          isOver && !isDragging && 'drag-over',
+          !photo.imageSrc && 'z-0',
+          isSelected && !isDragging && 'ring-2 ring-primary ring-offset-2 z-10'
       )}
-      draggable={!!photo.imageSrc}
-      onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDragEnter={(e) => handleDragEnter(e, index)}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e, index)}
-      onDragEnd={handleDragEnd}
-      onTouchStart={(e) => handleTouchStart(e, index)}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onClick={handleSelect}
     >
       {photo.imageSrc ? (
          <div
           style={{
             borderWidth: `${borderWidth}px`,
+            borderColor: borderColor,
           }}
-          className='w-full h-full border-black'
+          className='w-full h-full border-black relative overflow-hidden'
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photo.imageSrc} alt={`Photo ${photo.id}`} className="photo-preview pointer-events-none" />
+          <img 
+            src={photo.imageSrc} 
+            alt={`Photo ${photo.id}`} 
+            className={cn(
+              "photo-preview pointer-events-none w-full h-full",
+              photo.fit === 'cover' ? 'object-cover' : 'object-contain'
+            )}
+            style={{ transform: `rotate(${photo.rotation}deg)` }}
+          />
+          {photo.text && (
+            <div 
+              className={cn(
+                "absolute inset-0 p-1 flex flex-col pointer-events-none",
+                textVerticalAlignClass
+              )}
+            >
+              <div
+                className={cn("w-full", textAlignClass)}
+                style={{
+                  color: photo.textColor,
+                  fontSize: `${photo.fontSize}%`,
+                  lineHeight: '1.2',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
+                }}
+              >
+                {photo.text}
+              </div>
+            </div>
+          )}
+
+           <div className="absolute top-1 right-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity no-print flex items-center gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-6 w-6 rounded-full shadow-md"
+                      onClick={handleToggleFit}
+                      onPointerDown={(e) => e.stopPropagation()}
+                  >
+                      {photo.fit === 'cover' ? <Shrink className="h-3 w-3" /> : <Expand className="h-3 w-3" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toggle Fit ({photo.fit === 'cover' ? 'Contain' : 'Cover'})</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-6 w-6 rounded-full shadow-md"
+                      onClick={handleRotate}
+                      onPointerDown={(e) => e.stopPropagation()}
+                  >
+                      <RotateCw className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Rotate Photo</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+           </div>
         </div>
       ) : (
         <div className="w-full h-full border-dashed border-slate-300" style={{borderWidth: '2px'}}>
@@ -93,131 +191,36 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
   photos: Photo[][];
   currentSheet: number;
   borderWidth: number;
-  dropTargetIndex: number | null;
-  dragIndex: React.MutableRefObject<number | null>;
-  touchTargetIndex: React.MutableRefObject<number | null>;
-  setDropTargetIndex: (index: number | null) => void;
-  swapPhotos: (dropIndex: number) => void;
+  borderColor: string;
 }>((props, ref) => {
   const { 
     photos, 
     currentSheet, 
     borderWidth,
-    dropTargetIndex,
-    dragIndex,
-    touchTargetIndex,
-    setDropTargetIndex,
-    swapPhotos
+    borderColor
   } = props;
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    const target = e.target as HTMLDivElement;
-    // Only allow dragging if the item has an image
-    if (target.querySelector('img')?.src) {
-        dragIndex.current = index;
-        e.dataTransfer.effectAllowed = "move";
-    } else {
-        e.preventDefault();
-    }
-  };
-  
-  const handleDragEnd = () => {
-    dragIndex.current = null;
-    setDropTargetIndex(null);
-  };
+  const { setSelectedPhotoId } = useEditor();
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); 
-  };
-
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    e.preventDefault();
-    if (dragIndex.current !== null && dragIndex.current !== index) {
-        setDropTargetIndex(index);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDropTargetIndex(null);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    e.preventDefault();
-    if (dragIndex.current !== null) {
-      swapPhotos(index);
-    }
-    handleDragEnd();
-  };
-  
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, index: number) => {
-    const target = e.currentTarget as HTMLDivElement;
-    if (target.querySelector('img')?.src) {
-        dragIndex.current = index;
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-      const touch = e.touches[0];
-      if (!touch || dragIndex.current === null) return;
-      
-      const dropTargetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropTargetDiv = dropTargetElement?.closest('.photo-item');
-      const dropTargetIndexAttr = dropTargetDiv?.getAttribute('data-photo-index');
-      
-      if (dropTargetIndexAttr) {
-          const dropIndex = parseInt(dropTargetIndexAttr, 10);
-          if (!isNaN(dropIndex) && dropIndex !== dragIndex.current) {
-            setDropTargetIndex(dropIndex);
-            touchTargetIndex.current = dropIndex;
-          } else {
-            if (dropIndex === dragIndex.current) {
-               setDropTargetIndex(null);
-               touchTargetIndex.current = null;
-            }
-          }
-      } else {
-        touchTargetIndex.current = null;
-        setDropTargetIndex(null);
-      }
-  };
-
-  const handleTouchEnd = () => {
-    if (dragIndex.current !== null && touchTargetIndex.current !== null) {
-      swapPhotos(touchTargetIndex.current);
-    }
-    dragIndex.current = null;
-    touchTargetIndex.current = null;
-    setDropTargetIndex(null);
-  };
+  const handleBackgroundClick = () => {
+    setSelectedPhotoId(null);
+  }
 
   return (
-    <div ref={ref} id="sheet-container" className="w-full h-full bg-white">
+    <div ref={ref} id="sheet-container" className="w-full h-full bg-white" onClick={handleBackgroundClick}>
       {photos.map((sheetData, sheetIndex) => (
         <div
           id={`sheet-${sheetIndex}`}
           className={cn("printable-area w-full h-full relative bg-white", sheetIndex !== currentSheet && "hidden")}
-          key={`${sheetIndex}-${photos.length}-${borderWidth}-${JSON.stringify(sheetData[0])}`}
+          key={`${sheetIndex}-${photos.length}-${borderWidth}-${borderColor}-${JSON.stringify(sheetData[0])}`}
         >
-          {sheetData.map((photo, index) => {
-            const isDragging = dragIndex.current === index && sheetIndex === currentSheet;
-            const isDropTarget = dropTargetIndex === index && sheetIndex === currentSheet;
+          {sheetData.map((photo) => {
             return (
               <PhotoItem 
                 key={photo.id} 
-                index={index} 
                 photo={photo}
                 borderWidth={borderWidth}
-                isDragging={isDragging}
-                isDropTarget={isDropTarget}
-                handleDragStart={handleDragStart}
-                handleDragEnd={handleDragEnd}
-                handleDragOver={handleDragOver}
-                handleDragEnter={handleDragEnter}
-                handleDragLeave={handleDragLeave}
-                handleDrop={handleDrop}
-                handleTouchStart={handleTouchStart}
-                handleTouchMove={handleTouchMove}
-                handleTouchEnd={handleTouchEnd}
+                borderColor={borderColor}
               />
             )
           })}
@@ -237,5 +240,3 @@ const SheetPreview = React.forwardRef<HTMLDivElement, {
 
 SheetPreview.displayName = "SheetPreview";
 export default SheetPreview;
-
-    

@@ -30,11 +30,11 @@ function ClientHeader() {
   const { user, isUserLoading } = useUser();
 
   return (
-    <header className="sticky top-0 left-0 right-0 p-2 border-b items-center justify-between bg-gradient-to-r from-cyan-50 via-blue-100 to-purple-200 z-40 no-print animate-gradient-shift bg-[length:200%_auto] flex">
+    <header className="sticky top-0 left-0 right-0 p-2 border-b items-center justify-between bg-gradient-to-r from-blue-100 via-sky-100 to-blue-200 z-40 no-print animate-gradient-shift bg-[length:200%_auto] flex">
       <div className="flex items-center gap-2 sm:gap-4">
         <SidebarTrigger className="flex" />
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 whitespace-nowrap">SiRa Editor</span>
+          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent whitespace-nowrap">SiRa Editor</span>
         </Link>
       </div>
 
@@ -43,7 +43,7 @@ function ClientHeader() {
             <div className="h-10 w-10" />
         ) : (
             <Link href={user ? "/profile" : "/login"}>
-                <div className="rounded-full p-0.5 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
+                <div className="rounded-full p-0.5 bg-gradient-to-r from-primary via-accent to-blue-600 animate-gradient-shift bg-[length:200%_auto] transition-all hover:scale-110 cursor-pointer">
                     <Avatar className="h-8 w-8 border-2 border-transparent">
                         {user ? <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} /> : null}
                         <AvatarFallback className="bg-background/80">

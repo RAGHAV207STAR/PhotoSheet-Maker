@@ -1,25 +1,111 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useEditor } from '@/context/editor-context';
+import { useEditor, type EditorState } from '@/context/editor-context';
 import UploadStep from './steps/upload-step';
 import PreviewStep from './steps/preview-step';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { GoogleSpinner } from '../ui/google-spinner';
-
+import SelectCopiesStep from './steps/select-copies-step';
+import { AnimatePresence, motion } from 'framer-motion';
+import { DndContext, DragEndEvent, DragOverlay, PointerSensor, TouchSensor, KeyboardSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { PhotoItem } from './sheet-preview';
+import type { ImageWithDimensions, Photo } from '@/context/editor-context';
+import Image from 'next/image';
 
 interface Photosheet {
   id: string;
   thumbnailUrl: string; 
   copies: number;
+  editorState: EditorState;
+}
+
+type WizardStep = 'select-copies' | 'upload-photos' | 'page-setup';
+
+function DraggableOverlayContent({ item }: { item: Photo | ImageWithDimensions }) {
+    if ('src' in item) {
+        return (
+             <div className="w-24 h-24 relative rounded-lg shadow-xl overflow-hidden bg-background">
+                <Image src={item.src} alt="dragged image" fill className="object-cover" />
+            </div>
+        )
+    }
+    return (
+        <div className="w-24 h-24">
+            <PhotoItem
+                photo={item}
+                borderWidth={2}
+                borderColor="#000000"
+                isDragging
+            />
+        </div>
+    )
 }
 
 export default function EditorWizard() {
-  const [step, setStep] = useState(1);
-  const { setCopies, setImages, resetEditor } = useEditor();
+  const [step, setStep] = useState<WizardStep>('select-copies');
+  const { 
+      setEditorState, 
+      setCopies: setEditorCopies, 
+      resetEditor,
+      photos, 
+      images,
+      swapPhotoItems,
+      placeImageInSlot,
+  } = useEditor();
+
+  const [activeDragItem, setActiveDragItem] = useState<Photo | ImageWithDimensions | null>(null);
+
+  const sensors = useSensors(
+      useSensor(PointerSensor),
+      useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+      useSensor(KeyboardSensor)
+  );
+
+  const handleDragStart = (event: DragEndEvent) => {
+      const { active } = event;
+      const activeId = active.id as string;
+  
+      const sheetPhoto = photos.flat().find(p => p.id.toString() === activeId);
+      if (sheetPhoto) {
+        setActiveDragItem(sheetPhoto);
+        return;
+      }
+  
+      const uploadedImage = images.find(img => img.src === activeId);
+      if (uploadedImage) {
+        setActiveDragItem(uploadedImage);
+        return;
+      }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+      setActiveDragItem(null);
+      const { active, over } = event;
+  
+      if (!over) return;
+  
+      const activeId = active.id.toString();
+      const overId = over.id.toString();
+  
+      if (activeId === overId) return;
+  
+      const isDraggingFromUploadedList = !!(active.data.current?.isFromUploadedList);
+  
+      if (isDraggingFromUploadedList) {
+        const imageToPlace = images.find(img => img.src === activeId);
+        if (imageToPlace) {
+          placeImageInSlot(imageToPlace.src, parseInt(overId, 10));
+        }
+      } else {
+        swapPhotoItems(parseInt(activeId, 10), parseInt(overId, 10));
+      }
+  };
+
+
   const searchParams = useSearchParams();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -35,74 +121,78 @@ export default function EditorWizard() {
   const { data: photosheet, isLoading } = useDoc<Photosheet>(photosheetDocRef);
 
   useEffect(() => {
-    // This effect runs when query params change, determining the editor's initial state.
-    if (historyId) {
-      // Loading from history. The `isLoading` and `photosheet` state will handle this.
-      return;
-    }
-    
-    // This is a new session (not from history), so reset the editor state.
-    if (!searchParams.toString()) {
-        resetEditor();
-    }
+    if (historyId) return;
+    if (!searchParams.toString()) resetEditor();
     
     if (copiesParam) {
       const parsedCopies = parseInt(copiesParam, 10);
       if (!isNaN(parsedCopies)) {
-        setCopies(parsedCopies);
+        setEditorCopies(parsedCopies);
+        setStep('upload-photos');
       }
+    } else {
+      setStep('select-copies');
     }
-    
-    setStep(1);
 
-    // Cleanup function: This will be called when the component is unmounted.
-    return () => {
-      resetEditor();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyId, copiesParam]); // Only re-run if these params change
+  }, [historyId, copiesParam, resetEditor, setEditorCopies, searchParams]);
 
   useEffect(() => {
-    // This effect handles loading a photosheet from history once the data is fetched.
-    if (historyId && photosheet) {
-        resetEditor();
-        if (photosheet.thumbnailUrl) {
-            setImages([{ src: photosheet.thumbnailUrl, width: 500, height: 500 }]);
-        }
-        if (photosheet.copies) {
-            setCopies(photosheet.copies);
-        }
-        setStep(2);
+    if (historyId && photosheet && photosheet.editorState) {
+        setEditorState(photosheet.editorState);
+        setStep('page-setup');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyId, photosheet]); // Runs when photosheet data arrives
+  }, [historyId, photosheet, setEditorState]);
 
-
-  const nextStep = () => {
-    setStep(2);
-  };
-
-  const prevStep = () => {
-    setStep(1);
-  };
+  const goTo = (nextStep: WizardStep) => setStep(nextStep);
   
-  // Loading state for history item
   if (historyId && isLoading) {
     return (
        <div className="w-full h-screen flex flex-col items-center justify-center gap-4">
         <GoogleSpinner />
-        <p className="text-muted-foreground font-semibold">
-            Loading from History...
-        </p>
+        <p className="text-muted-foreground font-semibold">Loading from History...</p>
       </div>
     )
   }
   
-  // Standard passport photo flow
+  const renderStep = () => {
+      switch (step) {
+          case 'select-copies':
+              return <SelectCopiesStep onContinue={() => goTo('upload-photos')} />;
+          case 'upload-photos':
+              return <UploadStep onContinue={() => goTo('page-setup')} onBack={() => goTo('select-copies')} />;
+          case 'page-setup':
+              return <PreviewStep onBack={() => goTo('upload-photos')} />;
+          default:
+              return <SelectCopiesStep onContinue={() => goTo('upload-photos')} />;
+      }
+  }
+
   return (
-    <div className="flex flex-col flex-grow bg-background">
-        {step === 1 && <UploadStep onContinue={nextStep} />}
-        {step === 2 && <PreviewStep onBack={prevStep} />}
-    </div>
+    <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+    >
+      <div className="flex flex-col flex-grow bg-background">
+          <AnimatePresence mode="wait">
+              <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex-grow flex flex-col"
+              >
+                  {renderStep()}
+              </motion.div>
+          </AnimatePresence>
+      </div>
+       <DragOverlay>
+          {activeDragItem ? (
+              <DraggableOverlayContent item={activeDragItem} />
+          ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

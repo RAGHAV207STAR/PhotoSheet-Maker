@@ -82,7 +82,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
       <>
           {canInstall && (
               <div className="py-4 flex justify-center">
-                  <Button onClick={handleInstallClick} size="lg" className="rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg transform transition-all hover:scale-105">
+                  <Button onClick={handleInstallClick} size="lg" className="rounded-full bg-gradient-to-r from-primary to-accent text-white shadow-lg transform transition-all hover:scale-105">
                       <Download className="mr-2 h-4 w-4"/>
                       Install App
                   </Button>
@@ -130,7 +130,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
   
           <section className="w-full max-w-4xl mx-auto py-12 px-4 md:px-0 text-slate-800">
               <div className="text-center">
-                  <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">
+                  <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-700">
                       Your All-in-One Photo Solution
                   </h2>
                   <p className="mt-4 text-lg text-slate-600">
@@ -142,12 +142,12 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
               </div>
   
               <div className="mt-12">
-                  <h3 className="text-3xl font-bold text-center mb-8 animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">Why Choose SiRa Editor?</h3>
+                  <h3 className="text-3xl font-bold text-center mb-8 animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-700">Why Choose SiRa Editor?</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {features.map((feature, index) => (
                         <Card key={index} className="bg-white/70 backdrop-blur-sm border-white/20 shadow-lg hover:shadow-xl transition-shadow">
                           <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                            <div className="p-2 bg-gradient-to-br from-cyan-100 to-blue-200 rounded-lg">
+                            <div className="p-2 bg-gradient-to-br from-blue-100 to-sky-200 rounded-lg">
                               <feature.icon className="h-6 w-6 text-blue-600" />
                             </div>
                             <CardTitle className="text-lg font-semibold">{feature.title}</CardTitle>
@@ -163,7 +163,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
               <div className="mt-16">
                   <div className="flex flex-col items-center text-center mb-8">
                       <FileQuestion className="h-10 w-10 mb-2 text-blue-600" />
-                      <h3 className="text-3xl font-bold text-center animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-700">Frequently Asked Questions</h3>
+                      <h3 className="text-3xl font-bold text-center animate-gradient-shift bg-[length:200%_auto] text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-blue-700">Frequently Asked Questions</h3>
                   </div>
                   <Accordion type="single" collapsible className="w-full space-y-4">
                        <AccordionItem value="item-1" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
@@ -173,7 +173,7 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
                           </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="item-2" className="bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg rounded-lg">
-                          <AccordionTrigger className="px-6 text-left">Is this passport size photo maker really free?</AccordionTrigger>
+                          <AccordionTrigger className="px-6 text-left">Is SiRa Editor really free?</AccordionTrigger>
                           <AccordionContent className="px-6">
                           Yes, absolutely! SiRa Editor is a completely free tool. You can create and download as many photo sheets as you need without any charges.
                           </AccordionContent>
@@ -194,12 +194,12 @@ export default function HomepageBodyContent({ onCollageClick }: HomepageBodyCont
               </div>
               
               <div className="mt-16 w-full">
-                  <Card className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-2xl animate-gradient-shift bg-[length:200%_auto]">
+                  <Card className="bg-gradient-to-r from-blue-500 to-sky-500 text-white border-0 shadow-2xl animate-gradient-shift bg-[length:200%_auto]">
                       <CardContent className="p-8 flex flex-col items-center text-center">
                           <h3 className="text-3xl font-bold">Ready to Start?</h3>
                           <p className="mt-2 text-lg text-blue-100">Create your perfect photo layout now — it’s free!</p>
                           <Button asChild size="lg" className="mt-6 bg-white text-blue-600 hover:bg-blue-50 shadow-md hover:shadow-lg transition-all">
-                              <Link href="/editor">Create Photosheet</Link>
+                              <Link href="/editor">Create Photo Sheet</Link>
                           </Button>
                       </CardContent>
                   </Card>
