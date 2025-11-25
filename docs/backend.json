@@ -31,7 +31,7 @@
     "Photosheet": {
       "title": "Photosheet",
       "type": "object",
-      "description": "Represents a generated photosheet record.",
+      "description": "Represents a generated photosheet record, including its full editor state.",
       "properties": {
         "userId": {
           "type": "string",
@@ -50,9 +50,13 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp when the photosheet was created."
+        },
+        "editorState": {
+            "type": "object",
+            "description": "A snapshot of the editor state when the sheet was saved."
         }
       },
-      "required": ["userId", "copies", "createdAt"]
+      "required": ["userId", "copies", "createdAt", "editorState"]
     }
   },
   "auth": {
@@ -73,3 +77,5 @@
     }
   }
 }
+
+    

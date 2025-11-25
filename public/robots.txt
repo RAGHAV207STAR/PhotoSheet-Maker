@@ -1,10 +1,7 @@
-# Allow all user agents to crawl the entire site
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# To allow all robots to crawl your site, use:
 User-agent: *
 Allow: /
 
-# Disallow crawling of specific paths if needed in the future
-# Disallow: /profile/
-# Disallow: /editor/
-
-# Sitemap location
-Sitemap: https://photosheet-maker.vercel.app/sitemap.xml
+Sitemap: https://siraeditor.vercel.app/sitemap.xml
