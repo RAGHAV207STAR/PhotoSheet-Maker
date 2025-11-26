@@ -113,7 +113,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 };
 
 // Overload for useFirebase to handle the optional parameter
-export function useFirebase(optional: true): Partial<FirebaseServicesAndUser>;
+export function useFirebase(optional: true): Omit<Partial<FirebaseServicesAndUser>, 'user'> & { user: User | null };
 export function useFirebase(): FirebaseServicesAndUser;
 
 /**
@@ -135,16 +135,16 @@ export function useFirebase(optional: boolean = false): Partial<FirebaseServices
     firebaseApp: context.firebaseApp ?? undefined,
     firestore: context.firestore ?? undefined,
     auth: context.auth ?? undefined,
-    user: context.user ?? null,
+    user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
 };
 
-export function useAuth(optional: true): Auth | undefined;
+export function useAuth(optional: true): Auth | null;
 export function useAuth(): Auth;
 /** Hook to access Firebase Auth instance. */
-export function useAuth(optional: boolean = false): Auth | undefined {
+export function useAuth(optional: boolean = false): Auth | null {
   const { auth } = useFirebase(true);
   if (!optional && !auth) {
     throw new Error('Auth service not available. Check FirebaseProvider props.');
@@ -152,10 +152,10 @@ export function useAuth(optional: boolean = false): Auth | undefined {
   return auth;
 };
 
-export function useFirestore(optional: true): Firestore | undefined;
+export function useFirestore(optional: true): Firestore | null;
 export function useFirestore(): Firestore;
 /** Hook to access Firestore instance. */
-export function useFirestore(optional: boolean = false): Firestore | undefined {
+export function useFirestore(optional: boolean = false): Firestore | null {
   const { firestore } = useFirebase(true);
   if (!optional && !firestore) {
     throw new Error('Firestore service not available. Check FirebaseProvider props.');
@@ -163,10 +163,10 @@ export function useFirestore(optional: boolean = false): Firestore | undefined {
   return firestore;
 };
 
-export function useFirebaseApp(optional: true): FirebaseApp | undefined;
+export function useFirebaseApp(optional: true): FirebaseApp | null;
 export function useFirebaseApp(): FirebaseApp;
 /** Hook to access Firebase App instance. */
-export function useFirebaseApp(optional: boolean = false): FirebaseApp | undefined {
+export function useFirebaseApp(optional: boolean = false): FirebaseApp | null {
   const { firebaseApp } = useFirebase(true);
   if (!optional && !firebaseApp) {
     throw new Error('FirebaseApp not available. Check FirebaseProvider props.');
