@@ -60,7 +60,15 @@ const handleNumberSetter = (value: NumberSetterValue): number => {
     return Array.isArray(value) ? value[0] : value;
 };
 
-export type EditorState = Omit<EditorContextType, 'setEditorState' | 'resetEditor' | 'resetLayout' | 'setImages' | 'setPhotos' | 'setBorderWidth' | 'setPhotoSpacing' | 'swapPhotoItems' | 'placeImageInSlot' | 'updatePhotoText' | 'updatePhotoStyle' | 'rotatePhoto' | 'togglePhotoFit' | 'setPhotoSize' | 'setPageDimensions' | 'setPageMargins' | 'setSelectedPhotoId' | 'saveToHistory'>;
+// This type definition now correctly omits all functions from EditorContextType
+export type EditorState = Omit<EditorContextType, 
+  'setImages' | 'setCopies' | 'setPhotos' | 'setCurrentSheet' | 
+  'setSelectedPhotoId' | 'swapPhotoItems' | 'placeImageInSlot' | 
+  'updatePhotoText' | 'updatePhotoStyle' | 'rotatePhoto' | 'togglePhotoFit' |
+  'setBorderWidth' | 'setBorderColor' | 'setPhotoSpacing' | 'setPhotoSize' |
+  'setUnit' | 'setPageSize' | 'setPageDimensions' | 'setOrientation' | 
+  'setPageMargins' | 'setEditorState' | 'resetEditor' | 'resetLayout' | 'saveToHistory'
+>;
 
 interface EditorContextType {
   images: ImageWithDimensions[];
