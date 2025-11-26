@@ -44,7 +44,7 @@ export interface FirebaseServicesAndUser {
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
+export interface UserHookResult { 
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -113,7 +113,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 };
 
 // Overload for useFirebase to handle the optional parameter
-export function useFirebase(optional: true): Omit<Partial<FirebaseServicesAndUser>, 'user'> & { user: User | null };
+export function useFirebase(optional: true): Partial<FirebaseServicesAndUser>;
 export function useFirebase(): FirebaseServicesAndUser;
 
 /**
@@ -149,7 +149,7 @@ export function useAuth(optional: boolean = false): Auth | null {
   if (!optional && !auth) {
     throw new Error('Auth service not available. Check FirebaseProvider props.');
   }
-  return auth;
+  return auth ?? null;
 };
 
 export function useFirestore(optional: true): Firestore | null;
@@ -160,7 +160,7 @@ export function useFirestore(optional: boolean = false): Firestore | null {
   if (!optional && !firestore) {
     throw new Error('Firestore service not available. Check FirebaseProvider props.');
   }
-  return firestore;
+  return firestore ?? null;
 };
 
 export function useFirebaseApp(optional: true): FirebaseApp | null;
@@ -171,7 +171,7 @@ export function useFirebaseApp(optional: boolean = false): FirebaseApp | null {
   if (!optional && !firebaseApp) {
     throw new Error('FirebaseApp not available. Check FirebaseProvider props.');
   }
-  return firebaseApp;
+  return firebaseApp ?? null;
 };
 
 type MemoFirebase <T> = T & {__memo?: boolean};
@@ -194,5 +194,5 @@ export function useUser(): UserHookResult;
  */
 export function useUser(optional: boolean = false): UserHookResult {
   const { user, isUserLoading, userError } = useFirebase(true);
-  return { user, isUserLoading, userError };
+  return { user: user ?? null, isUserLoading, userError };
 };
