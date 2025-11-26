@@ -2,6 +2,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { GoogleSpinner } from '@/components/ui/google-spinner';
 import { EditorLoader } from './editor-loader';
 
@@ -16,5 +17,12 @@ const EditorWizard = dynamic(() => import('@/components/app/editor-wizard'), {
 });
 
 export default function EditorPage() {
-  return <EditorLoader />;
+  return (
+    <Suspense fallback={<div className="w-full h-screen flex flex-col items-center justify-center gap-4">
+        <GoogleSpinner />
+        <p className="text-muted-foreground font-semibold">Initializing Editor...</p>
+    </div>}>
+      <EditorLoader />
+    </Suspense>
+  );
 }
