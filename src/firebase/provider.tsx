@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useRef } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import {
     Firestore,
@@ -48,8 +48,8 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   user: User | null;
-  isUserLoading: boolean;
-  userError: Error | null;
+  isUserLoading: boolean; // True during initial auth check
+  userError: Error | null; // Error from auth listener
 }
 
 // Return type for useUser() - specific to user auth state
@@ -203,7 +203,7 @@ export function useUser(): UserHookResult;
  */
 export function useUser(optional: boolean = false): UserHookResult {
   const { user, isUserLoading, userError } = useFirebase(true);
-  return { user: user ?? null, isUserLoading, userError };
+  return { user: user ?? null, isUserLoading: isUserLoading ?? true, userError: userError ?? null };
 };
 
 // useCollection hook
