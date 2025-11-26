@@ -135,7 +135,7 @@ export function useFirebase(optional: boolean = false): Partial<FirebaseServices
     firebaseApp: context.firebaseApp ?? undefined,
     firestore: context.firestore ?? undefined,
     auth: context.auth ?? undefined,
-    user: context.user,
+    user: context.user ?? null,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
   };
